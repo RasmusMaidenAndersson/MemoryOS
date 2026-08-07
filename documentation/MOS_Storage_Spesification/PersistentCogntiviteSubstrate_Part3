@@ -1,0 +1,309 @@
+MOS Persistent Cognitive Substrate (PCS)
+Specification v0.1
+Part III — Physical Storage Model (PSM)
+Abstract
+
+The Physical Storage Model defines how Cognitive Objects are organized, persisted, indexed, replicated, and maintained by a storage implementation.
+
+Unlike the Logical Storage Model, which defines semantics, the Physical Storage Model defines operational behavior while remaining independent of any specific storage technology.
+
+The PSM establishes a common implementation contract that allows multiple storage engines to implement the Persistent Cognitive Substrate consistently.
+
+Chapter 1
+Purpose
+
+The Physical Storage Model bridges logical cognition and concrete storage technologies.
+
+It specifies:
+
+physical organization,
+storage collections,
+indexing,
+partitioning,
+transactions,
+consistency,
+durability,
+distribution,
+optimization.
+
+Implementations SHALL preserve logical semantics while optimizing physical storage.
+
+Chapter 2
+Physical Architecture
+
+The PSM is composed of the following layers:
+
+Persistent Cognitive Substrate
+            │
+            ▼
+   Logical Storage Model
+            │
+            ▼
+  Physical Storage Model
+            │
+ ┌──────────┼──────────┐
+ ▼          ▼          ▼
+Collections Indexes  Partitions
+            │
+            ▼
+ Storage Engine Backend
+
+The Physical Storage Model acts as an implementation contract rather than a database schema.
+
+Chapter 3
+Storage Collections
+
+A Storage Collection groups Storage Objects with similar physical characteristics.
+
+Unlike a Storage Domain, which groups objects semantically, a Storage Collection groups them operationally.
+
+A Storage Collection defines:
+
+access pattern,
+indexing strategy,
+partitioning policy,
+compression policy,
+retention policy,
+replication policy,
+durability guarantees.
+
+Collections are logical constructs and SHALL NOT be assumed to map one-to-one to database tables.
+
+Chapter 4
+Physical Object Layout
+
+Every persisted object SHALL consist of standardized physical sections:
+
+Object Header
+    │
+    ├── PID
+    ├── Type
+    ├── Version
+    ├── Domain
+    ├── Class
+    ├── Policy
+    │
+Object Metadata
+    │
+    ├── Provenance
+    ├── Temporal Fields
+    ├── Security Context
+    │
+Object Payload
+    │
+Object Relationships
+
+This layout is conceptual and independent of serialization format.
+
+Chapter 5
+Persistence Policies
+
+Storage behavior is governed by Persistence Policies.
+
+Examples include:
+
+Policy	Description
+Hot	Low-latency operational data
+Warm	Frequently accessed persistent knowledge
+Cold	Infrequently accessed online storage
+Frozen	Immutable archive
+Replicated	Multi-node durability
+Encrypted	Additional confidentiality
+Pinned	Exempt from lifecycle optimization
+
+Policies MAY change throughout an object's lifecycle without altering its identity.
+
+Chapter 6
+Indexing Model
+
+Indexes SHALL be treated as derived structures.
+
+Indexes SHALL NOT contain authoritative knowledge.
+
+They exist solely to accelerate retrieval.
+
+Examples:
+
+Identity indexes
+Relationship indexes
+Temporal indexes
+Semantic indexes
+Spatial indexes
+Full-text indexes
+Vector indexes
+
+Indexes SHALL be rebuildable from authoritative Storage Objects.
+
+Chapter 7
+Partitioning
+
+Storage Collections MAY be partitioned according to:
+
+time,
+tenant,
+domain,
+environment,
+geography,
+lifecycle state,
+workload.
+
+Partitioning SHALL preserve logical transparency.
+
+Applications SHALL not require knowledge of partition boundaries.
+
+Chapter 8
+Transactions
+
+The PSM requires atomicity for logically related updates.
+
+Examples include:
+
+creating an Entity and its initial Facts,
+superseding a Fact while preserving provenance,
+completing a Plan and archiving associated Tasks.
+
+Implementations MAY use different transactional mechanisms, provided logical consistency is preserved.
+
+Chapter 9
+Consistency
+
+The PSM distinguishes:
+
+Transactional Consistency
+Referential Consistency
+Temporal Consistency
+Cognitive Consistency
+
+Not all operations require the same consistency guarantees.
+
+The required consistency level SHALL be explicit.
+
+Chapter 10
+Replication and Distribution
+
+Storage implementations MAY replicate data across nodes.
+
+Replication SHALL preserve:
+
+identity,
+provenance,
+version history,
+temporal semantics.
+
+Conflict resolution SHALL never discard historical information.
+
+Chapter 11
+Durability
+
+Persistent objects SHALL survive:
+
+process restart,
+node restart,
+storage migration,
+software upgrade.
+
+Durability SHALL be configurable according to Persistence Policy.
+
+Chapter 12
+Optimization
+
+Optimizations SHALL never alter semantic meaning.
+
+Permitted optimizations include:
+
+compression,
+deduplication,
+index rebuilding,
+archival migration,
+storage tiering.
+
+All optimizations SHALL preserve explainability and provenance.
+
+Chapter 13
+Recovery
+
+The PSM SHALL support recovery of:
+
+individual objects,
+collections,
+domains,
+complete cognitive state.
+
+Recovery SHALL preserve historical versions and relationships.
+
+Chapter 14
+Explainability
+
+Physical implementation details SHALL never prevent reconstruction of logical cognition.
+
+Storage optimizations SHALL remain transparent to explainability.
+
+Chapter 15
+Compliance
+
+A Physical Storage Model implementation complies with PCS Part III if it provides:
+
+Storage Collections.
+Standardized object layout.
+Persistence Policies.
+Derived indexes.
+Transparent partitioning.
+Explicit consistency guarantees.
+Durable persistence.
+Recoverability.
+Explainability preservation.
+Part III Result
+
+The Physical Storage Model completes the implementation-independent storage architecture.
+
+The complete stack now looks like this:
+
+Reality
+    │
+    ▼
+Observation
+    │
+    ▼
+Cognitive Element
+    │
+    ▼
+Memory Space
+    │
+    ▼
+Cognitive Object
+    │
+    ▼
+Storage Object
+    │
+    ▼
+Storage Collection
+    │
+    ▼
+Physical Storage Model
+    │
+    ▼
+Backend Implementation
+A refinement that emerged from Part III
+
+While defining Storage Collections and Persistence Policies, another pattern became clear:
+
+Storage Capabilities
+
+Instead of assuming every backend supports every feature, MOS should define a capability negotiation model.
+
+A backend advertises the capabilities it implements, for example:
+
+Capability	Purpose
+Versioning	Immutable object history
+Vector Search	Embedding similarity
+Graph Traversal	Native relationship queries
+Temporal Queries	Time-travel and valid-time lookups
+Full-Text Search	Lexical retrieval
+ACID Transactions	Strong transactional guarantees
+Distributed Replication	Multi-node synchronization
+Object Compression	Space optimization
+Encryption at Rest	Confidential persistence
+
+This means the MOS API can target the abstract capability rather than a specific database. A PostgreSQL implementation might provide all capabilities through extensions (pgvector, Apache AGE, TimescaleDB, etc.), while another backend could provide only a subset.
+
+I believe this will be a defining architectural decision because it decouples the what from the how. The API asks for "semantic vector search" or "time-travel query"; the backend advertises whether it supports that capability and how it fulfills it. This makes MOS portable without weakening the specification.

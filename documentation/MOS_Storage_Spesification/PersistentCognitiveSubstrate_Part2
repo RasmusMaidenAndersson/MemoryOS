@@ -1,0 +1,436 @@
+MOS Persistent Cognitive Substrate (PCS)
+Specification v0.1
+Part II — Logical Storage Model
+Abstract
+
+Part II defines the logical organization of persistent cognition.
+
+It specifies how Cognitive Objects are represented, identified, versioned, related, and evolved within the Persistent Cognitive Substrate.
+
+Unlike the Physical Storage Model, this document is entirely implementation independent.
+
+Its purpose is to establish a stable logical contract between cognition and persistence.
+
+Chapter 1
+Purpose
+
+The Logical Storage Model bridges cognition and persistence.
+
+It defines:
+
+what persistent objects exist,
+how they relate,
+how they evolve,
+how they maintain identity,
+how they preserve history,
+how they participate in reasoning.
+Chapter 2
+Cognitive Object Model (COM)
+
+The Cognitive Object Model is the canonical representation of all persistent cognition.
+
+Every persistent concept SHALL be represented as a Cognitive Object.
+
+Examples include:
+
+Entity
+Fact
+Observation
+Episode
+Goal
+Plan
+Procedure
+Skill
+Reflection
+Policy
+Identity
+Environment
+Simulation
+Prediction
+Resource
+Communication
+
+The COM is independent of storage technology and serves as the universal semantic model.
+
+Chapter 3
+Cognitive Object Structure
+
+Every Cognitive Object SHALL contain the following logical components:
+
+Persistent Identity
+
+Object Type
+
+Memory Space
+
+Storage Class
+
+Storage Domain
+
+Version
+
+Lifecycle State
+
+Temporal Context
+
+Provenance
+
+Relationships
+
+Security Context
+
+Metadata
+
+Payload
+
+The payload contains the object-specific content; all other components are standardized across object types.
+
+Chapter 4
+Identity Model
+
+Every Cognitive Object SHALL possess a globally unique Persistent Identifier (PID).
+
+Identity SHALL be:
+
+immutable,
+globally unique,
+stable across versions,
+independent of storage location.
+
+No backend-specific identifier SHALL be exposed as the canonical identity.
+
+Chapter 5
+Object Taxonomy
+
+Objects are grouped into logical families.
+
+Knowledge Objects
+Entities
+Facts
+Relationships
+Concepts
+Experience Objects
+Events
+Observations
+Episodes
+Planning Objects
+Goals
+Milestones
+Tasks
+Plans
+Capability Objects
+Skills
+Procedures
+Tools
+Governance Objects
+Policies
+Permissions
+Constraints
+Authorities
+World Objects
+Environments
+World States
+Simulations
+Predictions
+Meta Objects
+Reflections
+Evaluations
+Metrics
+System Objects
+Cache Entries
+Embeddings
+Indexes
+Telemetry
+
+This taxonomy provides logical organization without dictating physical storage.
+
+Chapter 6
+Relationships
+
+Objects SHALL relate through typed references.
+
+Relationship categories include:
+
+Structural
+Semantic
+Temporal
+Causal
+Dependency
+Ownership
+Governance
+Derivation
+Similarity
+Communication
+
+Relationships SHALL themselves be first-class Cognitive Objects.
+
+This allows relationships to carry:
+
+confidence,
+provenance,
+temporal validity,
+metadata.
+Chapter 7
+Object Composition
+
+Complex Cognitive Objects MAY be composed of other Cognitive Objects.
+
+Example:
+
+Plan
+
+├── Goal
+
+├── Milestone
+
+├── Tasks
+
+├── Procedures
+
+├── Policies
+
+└── Resources
+
+Composition SHALL preserve independent identities for all child objects.
+
+Chapter 8
+Versioning Model
+
+Objects evolve through immutable versions.
+
+Object
+
+↓
+
+Version 1
+
+↓
+
+Version 2
+
+↓
+
+Version 3
+
+Each version SHALL preserve:
+
+timestamp,
+author,
+provenance,
+reason for change,
+supersession link.
+
+Historical versions remain queryable.
+
+Chapter 9
+Object State Machine
+
+Every object progresses through explicit states.
+
+Created
+
+↓
+
+Validated
+
+↓
+
+Active
+
+↓
+
+Referenced
+
+↓
+
+Updated
+
+↓
+
+Consolidated
+
+↓
+
+Archived
+
+↓
+
+Retained
+
+State transitions SHALL be auditable.
+
+Chapter 10
+Temporal Model
+
+Each object participates in multiple timelines.
+
+Required temporal attributes include:
+
+Creation Time
+Observation Time
+Valid Time
+Transaction Time
+Consolidation Time
+Archive Time
+
+Temporal reasoning SHALL preserve all dimensions independently.
+
+Chapter 11
+Provenance Graph
+
+Every object SHALL participate in a Provenance Graph.
+
+Example:
+
+Observation
+
+↓
+
+Fact
+
+↓
+
+Reflection
+
+↓
+
+Skill
+
+↓
+
+Decision
+
+This enables complete reconstruction of reasoning pathways.
+
+Chapter 12
+Object Dependencies
+
+Objects MAY depend on other objects.
+
+Dependency types include:
+
+Requires
+Produces
+Consumes
+Implements
+Extends
+References
+Invalidates
+Supersedes
+
+Dependency cycles SHOULD be detected and managed explicitly.
+
+Chapter 13
+Cognitive Cohesion
+
+Objects belonging to the same reasoning process SHOULD maintain logical cohesion.
+
+Related objects MAY be grouped into Cognitive Contexts.
+
+Examples:
+
+Active investigation
+Software deployment
+Financial analysis
+Medical diagnosis
+
+A Cognitive Context provides a reusable boundary for reasoning and retrieval.
+
+Chapter 14
+Referential Integrity
+
+The Logical Storage Model requires semantic referential integrity.
+
+References SHALL remain valid across:
+
+version changes,
+migrations,
+storage relocation,
+replication.
+
+Broken references SHALL be detectable.
+
+Chapter 15
+Object Evolution
+
+Objects evolve through:
+
+reinforcement,
+refinement,
+contradiction,
+supersession,
+consolidation,
+reflection.
+
+Evolution SHALL preserve complete historical lineage.
+
+Chapter 16
+Explainability
+
+Every object SHALL support reconstruction of:
+
+origin,
+evolution,
+dependencies,
+supporting evidence,
+affected decisions,
+current confidence.
+
+Explainability is a first-class property of every Cognitive Object.
+
+Chapter 17
+Compliance
+
+A Logical Storage Model implementation complies with PCS Part II if it provides:
+
+Cognitive Objects as first-class entities.
+Stable object identities.
+Explicit object taxonomy.
+Typed relationships.
+Immutable version history.
+Multi-dimensional temporal semantics.
+Provenance graphs.
+Referential integrity.
+Object state machines.
+Explainability.
+Part II Result
+
+The Logical Storage Model defines what exists inside persistent cognition without specifying how it is stored.
+
+At this point, the architecture has three clear layers:
+
+MOS Core Specification
+        │
+        ▼
+Persistent Cognitive Substrate
+        │
+        ▼
+Logical Storage Model
+        │
+        ▼
+Physical Storage Model
+        │
+        ▼
+Database Backend
+A refinement that emerged while writing Part II
+
+One architectural concept became increasingly clear:
+
+Cognitive Contexts
+
+Throughout the RFCs we've talked about Working Memory, Active Context, and Memory Activation. However, those describe runtime cognition.
+
+The Logical Storage Model benefits from a persistent counterpart:
+
+A Cognitive Context is a persistent, addressable collection of Cognitive Objects that together describe a coherent reasoning domain or activity.
+
+Examples include:
+
+"Incident #2026-0812"
+"Research Project: Battery Chemistry"
+"Customer Support Case #18492"
+"Deployment: Production Release v2.4"
+
+A Cognitive Context is not merely a tag or folder. It has its own identity, lifecycle, provenance, relationships, and metadata. It allows MOS to retrieve, version, archive, and explain complex reasoning as a cohesive unit rather than as isolated objects.
+
+I believe Cognitive Contexts will become one of the key building blocks in the MOS API (open_context(), activate_context(), archive_context()) and in the PostgreSQL implementation (through dedicated context tables and optimized indexes). They provide a clean bridge between the dynamic cognition described in RFC-0014 and the persistent storage model defined here.

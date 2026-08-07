@@ -1,0 +1,532 @@
+Memory Operating System (MOS)
+Core Specification
+RFC-0002
+Cognitive Dynamics
+
+RFC Number
+
+RFC-0002
+
+Title
+
+Cognitive Dynamics
+
+Status
+
+Draft
+
+Version
+
+0.1.0
+
+Category
+
+Normative
+
+Dependencies
+
+RFC-0000
+RFC-0001
+Abstract
+
+This document defines the dynamic behavior of cognition within the Memory Operating System (MOS).
+
+Where RFC-0001 specifies the structure of cognition, this RFC specifies how cognition evolves over time.
+
+It introduces the concepts of Cognitive Forces, Cognitive Policies, Cognitive Constraints, Activation, Attention, State Transitions, Reflection, Learning, Prediction, and Equilibrium.
+
+These concepts define the "physics" governing the Cognitive State Space.
+
+1. Purpose
+
+The purpose of this specification is to define how Cognitive Elements change while preserving the invariants established by RFC-0001.
+
+This RFC defines the dynamic semantics of MOS independently of any implementation.
+
+Workers, language models, databases, APIs, and reasoning engines SHALL conform to these dynamics regardless of implementation.
+
+2. The Dynamics Axiom
+
+MOS defines cognition as continuous evolution.
+
+A Memory Operating System SHALL evolve its Cognitive State Space through the application of Cognitive Forces acting upon Cognitive Elements under Cognitive Constraints according to Cognitive Policies.
+
+This is the primary axiom of Cognitive Dynamics.
+
+3. Cognitive Dynamics Model
+
+Every cognitive change SHALL be represented using the following model.
+
+Current State
+
+↓
+
+Force
+
+↓
+
+Constraints
+
+↓
+
+Policies
+
+↓
+
+Transition
+
+↓
+
+New State
+
+↓
+
+Equilibrium
+
+This model applies to every Cognitive Element.
+
+No exception exists.
+
+4. Cognitive Forces
+
+A Cognitive Force represents any influence capable of modifying the Cognitive State Space.
+
+Forces do not directly perform work.
+
+Instead, they define categories of cognitive transformation.
+
+Workers, language models, humans, sensors, and external systems implement forces.
+
+Properties
+
+Every Cognitive Force SHALL possess:
+
+Identity
+Type
+Priority
+Provenance
+Scope
+Inputs
+Outputs
+Preconditions
+Postconditions
+Standard Force Categories
+
+MOS defines the following standard force classes.
+
+Observation Force
+
+Introduces new observations.
+
+Interpretation Force
+
+Transforms observations into candidate meanings.
+
+Validation Force
+
+Evaluates supporting evidence.
+
+Reasoning Force
+
+Generates new cognitive relationships.
+
+Attention Force
+
+Determines computational focus.
+
+Planning Force
+
+Generates or modifies goals and plans.
+
+Execution Force
+
+Records actions performed.
+
+Reflection Force
+
+Improves cognitive organization.
+
+Learning Force
+
+Modifies future behavior.
+
+Prediction Force
+
+Produces hypotheses regarding future states.
+
+Consolidation Force
+
+Compresses and reorganizes knowledge.
+
+Decay Force
+
+Reduces activation of unused cognition.
+
+Correction Force
+
+Repairs inconsistent cognition.
+
+Security Force
+
+Applies authorization policies.
+
+Policy Force
+
+Updates governing policies.
+
+Future versions MAY introduce additional forces.
+
+5. Cognitive Constraints
+
+Constraints define what transitions are permitted.
+
+Constraints SHALL be evaluated before any transition occurs.
+
+Examples include:
+
+Authorization
+Security
+Policy compliance
+Temporal validity
+Resource limits
+Human approval
+Contradiction limits
+Ethical restrictions
+Dependency requirements
+Context limitations
+
+A force SHALL NOT violate an active constraint.
+
+6. Cognitive Policies
+
+Policies determine preferred behavior.
+
+Policies SHALL guide transitions but SHALL NOT override constraints.
+
+Policies are Cognitive Elements.
+
+Policies SHALL therefore possess:
+
+Identity
+Version
+Provenance
+Confidence
+Scope
+
+Examples include:
+
+Prefer recent evidence.
+
+Prioritize active goals.
+
+Retain critical procedures.
+
+Favor verified observations.
+
+Require multiple evidence sources.
+
+Policies MAY evolve through learning.
+
+7. Attention
+
+Attention is the allocation of computational resources within the Cognitive State Space.
+
+Attention determines which Cognitive Elements become active.
+
+Attention SHALL be explicit.
+
+Attention SHALL NOT be inferred solely from retrieval mechanisms.
+
+Attention is dynamic.
+
+Attention is limited.
+
+Attention is influenced by goals, context, novelty, urgency, importance, confidence, and policy.
+
+8. Activation
+
+Activation represents the current cognitive relevance of a Cognitive Element.
+
+Activation SHALL be independent of storage.
+
+Activation MAY vary continuously.
+
+Activation SHALL be recalculated as cognition evolves.
+
+Activation SHOULD consider:
+
+Attention
+Goal relevance
+Confidence
+Recency
+Importance
+Frequency
+Novelty
+User context
+Environmental context
+Policy
+
+Implementations MAY include additional signals.
+
+9. Working Memory
+
+Working Memory is not persistent storage.
+
+Working Memory is an activated projection of the Cognitive State Space.
+
+Working Memory SHALL consist only of sufficiently activated Cognitive Elements.
+
+Working Memory SHALL evolve continuously.
+
+10. State Transitions
+
+Every Cognitive Element SHALL transition through explicitly defined states.
+
+Typical lifecycle:
+
+Created
+
+↓
+
+Observed
+
+↓
+
+Interpreted
+
+↓
+
+Validated
+
+↓
+
+Linked
+
+↓
+
+Referenced
+
+↓
+
+Activated
+
+↓
+
+Strengthened
+
+↓
+
+Weakened
+
+↓
+
+Superseded
+
+↓
+
+Archived
+
+Transitions SHALL preserve:
+
+Identity
+Provenance
+Version history
+
+Historical states SHALL remain reconstructable.
+
+11. Cognitive Equilibrium
+
+The Cognitive State Space continuously seeks equilibrium.
+
+Equilibrium is achieved when no active force can produce additional valid transitions.
+
+Equilibrium is temporary.
+
+Any new observation MAY disrupt equilibrium.
+
+12. Reflection
+
+Reflection is the process of improving the organization of cognition.
+
+Reflection SHALL NOT alter historical observations.
+
+Reflection MAY:
+
+Merge duplicate entities
+Split ambiguous entities
+Consolidate beliefs
+Improve summaries
+Extract procedures
+Generate reusable skills
+Detect contradictions
+Recalculate confidence
+Improve ontology
+Strengthen relationships
+Archive obsolete cognition
+
+Reflection modifies structure.
+
+It does not erase history.
+
+13. Learning
+
+Learning modifies future dynamics.
+
+Learning SHALL preserve historical cognition.
+
+Learning MAY modify:
+
+Policies
+Priorities
+Confidence models
+Activation models
+Retrieval strategies
+Planning strategies
+Reflection strategies
+
+Learning SHALL improve future cognition rather than rewrite the past.
+
+14. Prediction
+
+Prediction produces hypotheses regarding future states.
+
+Predictions SHALL remain separate from observations.
+
+Predictions SHALL possess confidence.
+
+Future observations MAY validate or invalidate predictions.
+
+Prediction SHALL therefore contribute to learning.
+
+15. Planning
+
+Planning creates intended future cognition.
+
+Plans consist of:
+
+Goals
+Milestones
+Tasks
+Dependencies
+Constraints
+Expected outcomes
+
+Planning SHALL remain versioned.
+
+Planning SHALL adapt as cognition evolves.
+
+16. Execution
+
+Execution records interactions between cognition and external systems.
+
+Execution SHALL preserve:
+
+Inputs
+Outputs
+Context
+Duration
+Success
+Failure
+Side effects
+
+Execution SHALL generate observations.
+
+17. Passive and Active Cognition
+
+MOS distinguishes between two cognitive modes.
+
+Passive Cognition includes:
+Observation
+Storage
+Retrieval
+Recall
+
+Active Cognition includes:
+
+Reasoning
+Planning
+Prediction
+Reflection
+Learning
+Decision-making
+
+Both operate upon the same Cognitive State Space.
+
+18. Continuous Optimization
+
+MOS defines cognition as continuous optimization.
+
+The objective is not maximum memory.
+
+The objective is useful cognition.
+
+Optimization SHALL balance:
+
+Accuracy
+Efficiency
+Explainability
+Adaptability
+Stability
+Resource utilization
+
+No single objective dominates all others.
+
+19. Compliance
+
+An implementation SHALL preserve all dynamic semantics defined by this specification.
+
+Implementation-specific optimizations SHALL NOT alter cognitive meaning.
+
+Appendix A — Dynamics Overview
+                 Observation
+                       │
+                       ▼
+             Observation Force
+                       │
+                       ▼
+                Interpretation
+                       │
+                       ▼
+             Interpretation Force
+                       │
+                       ▼
+                   Evidence
+                       │
+                       ▼
+               Validation Force
+                       │
+                       ▼
+                    Beliefs
+                       │
+        ┌──────────────┼───────────────┐
+        │              │               │
+        ▼              ▼               ▼
+  Reasoning      Planning        Prediction
+        │              │               │
+        └──────────────┼───────────────┘
+                       ▼
+                 Attention Force
+                       │
+                       ▼
+                  Activation
+                       │
+                       ▼
+                Working Memory
+                       │
+                       ▼
+                  Decision
+                       │
+                       ▼
+                  Execution
+                       │
+                       ▼
+                 New Observations
+                       │
+                       ▼
+                  Reflection
+                       │
+                       ▼
+                   Learning
+                       │
+                       ▼
+             Updated Policies & Models

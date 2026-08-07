@@ -1,0 +1,622 @@
+Memory Operating System (MOS)
+Core Specification
+RFC-0004
+Cognitive Domain Model
+RFC Metadata
+Field	Value
+RFC	RFC-0004
+Title	Cognitive Domain Model
+Status	Draft
+Version	0.1.0
+Category	Normative
+Depends On	RFC-0000, RFC-0001, RFC-0002, RFC-0003
+Abstract
+
+This specification defines the Cognitive Domain Model of the Memory Operating System (MOS).
+
+A Cognitive Domain is not a storage location, memory type, database schema, or physical partition.
+
+Instead, a Cognitive Domain is a policy-governed semantic namespace over the Cognitive State Space.
+
+Domains organize cognition according to semantic purpose while preserving a single canonical representation of every Cognitive Element.
+
+A Cognitive Element SHALL exist exactly once within the Cognitive State Space and MAY participate in zero or more Cognitive Domains through policy-governed semantic projection.
+
+1. Purpose
+
+RFC-0001 defines the principles of cognition.
+
+RFC-0002 defines cognitive evolution.
+
+RFC-0003 defines the structure of cognition.
+
+RFC-0004 defines how cognition is organized.
+
+Organization SHALL remain independent from storage implementation.
+
+2. Domain Axiom
+
+MOS defines the following organizational principle:
+
+A Cognitive Domain SHALL organize cognition through semantic policies rather than physical ownership.
+
+Domains SHALL NOT own Cognitive Elements.
+
+Domains SHALL expose semantic views over the Cognitive State Space.
+
+3. The Domain Model
+
+A Cognitive Domain is composed of five normative components:
+
+Identity
+Purpose
+Membership Policies
+Behavioral Policies
+Optimization Policies
+
+Every compliant implementation SHALL preserve these semantics regardless of storage architecture.
+
+4. Identity
+
+Every Cognitive Domain SHALL possess a stable identity.
+
+Identity represents the semantic purpose of the domain.
+
+Domain identity SHALL remain independent from:
+
+implementation
+storage
+deployment
+network topology
+programming language
+5. Purpose
+
+Every domain SHALL define exactly one primary semantic purpose.
+
+Examples include:
+
+knowledge organization
+attention management
+planning
+execution
+reflection
+governance
+
+Purpose defines intent, not implementation.
+
+6. Membership Policies
+
+Membership SHALL be determined exclusively through policy evaluation.
+
+A Membership Policy specifies the conditions under which a Cognitive Element participates in a domain.
+
+Example (illustrative only):
+
+confidence ≥ 0.85
+AND validated = true
+AND archived = false
+
+Membership SHALL be:
+
+deterministic
+explainable
+reproducible
+version-aware
+
+Elements SHALL NOT be copied into domains.
+
+7. Behavioral Policies
+
+Behavioral Policies define how a domain influences cognition.
+
+Examples include:
+
+retrieval priority
+activation behavior
+retention behavior
+visibility
+reasoning scope
+planning participation
+
+Behavioral Policies SHALL NOT modify element identity.
+
+8. Optimization Policies
+
+Optimization Policies define implementation-independent performance goals.
+
+Examples include:
+
+preferred indexing
+caching eligibility
+precomputation
+materialization hints
+archival preference
+
+These policies describe desired behavior without prescribing implementation.
+
+8.1 Policy Elements
+
+MOS defines Policies as first-class Cognitive Elements.
+
+Policies SHALL participate in the Cognitive State Space using the same semantic model as every other Cognitive Element.
+
+A Policy SHALL possess:
+
+Identity
+Purpose
+Version History
+Provenance
+Relationships
+Lifecycle
+Explainability
+
+Policies SHALL NOT be represented as opaque implementation configuration when they influence canonical cognition.
+
+Policy Axiom
+
+MOS defines the following rule.
+
+Every rule governing cognition SHALL itself be representable as cognition.
+
+This enables the Memory Operating System to reason about, explain, audit, version, and improve its own governing behavior.
+
+Policy Categories
+
+RFC-0004 defines several canonical policy categories.
+
+Membership Policies
+
+Determine whether a Cognitive Element belongs to a Cognitive Domain.
+
+Examples:
+
+confidence threshold
+validation requirements
+archival status
+trust level
+
+Membership Policies determine visibility.
+
+They SHALL NOT modify Cognitive Elements.
+
+Behavioral Policies
+
+Determine how a domain behaves.
+
+Examples:
+
+retrieval priority
+activation strategy
+retention strategy
+reasoning scope
+planning participation
+
+Behavioral Policies influence cognition without changing identity.
+
+Optimization Policies
+
+Describe optimization objectives.
+
+Examples include:
+
+cache eligibility
+preferred indexing
+pre-computed projections
+materialization
+archival preference
+
+Optimization Policies SHALL preserve semantic equivalence.
+
+Governance Policies
+
+Govern the Cognitive State Space itself.
+
+Examples:
+
+authorization
+compliance
+trust
+security
+privacy
+organizational rules
+
+Governance Policies SHALL be evaluated before any state-modifying transaction.
+
+Learning Policies
+
+Govern adaptation.
+
+Learning Policies determine:
+
+when learning occurs
+acceptable evidence
+confidence adjustments
+policy evolution
+consolidation strategies
+
+Learning Policies SHALL preserve historical explainability.
+
+Policy Relationships
+
+Policies MAY reference:
+
+Domains
+Cognitive Elements
+Capabilities
+Functions/strategy
+Operations
+Transactions
+Events
+Other Policies
+
+Policies therefore become part of the semantic graph.
+
+Policy Versioning
+
+Policies SHALL evolve through normal version evolution.
+
+Changing a policy SHALL NOT overwrite previous policy versions.
+
+Historical decisions SHALL remain explainable using the policy version active at the time.
+
+Policy Explainability
+
+Every policy evaluation SHALL be explainable.
+
+A compliant implementation SHALL reconstruct:
+
+which policy was evaluated
+which version was used
+which conditions matched
+which conditions failed
+resulting decision
+producing transaction
+Policy Composition
+
+Policies MAY be composed.
+
+Example:
+
+Membership Policy
+
+AND
+
+Security Policy
+
+AND
+
+Trust Policy
+
+AND
+
+Project Policy
+
+The resulting policy SHALL behave as a single logical policy while preserving explainability for each constituent policy.
+
+Policy Lifecycle
+
+Policies follow the same lifecycle as every Cognitive Element.
+
+Create
+
+↓
+
+Validate
+
+↓
+
+Activate
+
+↓
+
+Observe
+
+↓
+
+Refine
+
+↓
+
+Version
+
+↓
+
+Supersede
+
+↓
+
+Archive
+
+Policies SHALL NEVER be silently replaced.
+
+I think we should introduce a concept called Meta-Cognition.
+
+Policies are only the first example.
+
+Eventually, MOS will contain other objects that describe, govern, or evaluate cognition itself:
+
+Policies
+Constraints
+Ontologies
+Taxonomies
+Schemas
+Trust Models
+Capability Definitions
+Domain Definitions
+Evaluation Metrics
+
+These don't represent the outside world—they represent the cognitive system itself.
+
+Rather than treating each as a special case, I'd define them collectively as Meta-Cognitive Elements: Cognitive Elements whose primary purpose is to describe, constrain, organize, or govern other Cognitive Elements.
+
+This gives us another elegant layer in the architecture:
+
+Reality
+        │
+        ▼
+Cognitive Elements
+        │
+        ▼
+Cognitive Domains
+        │
+        ▼
+Meta-Cognitive Elements
+        │
+        ▼
+Policies
+Constraints
+Ontologies
+Capability Definitions
+Trust Models
+
+That single abstraction will simplify many later RFCs because we won't need separate rules for every kind of "system knowledge." They'll all inherit the same semantics as first-class Meta-Cognitive Elements. I think this is the last major conceptual piece needed before RFC-0004 can be considered stable and before we revisit RFC-0005 with an even cleaner foundation.
+
+9. Domain Membership
+
+A Cognitive Element MAY participate in:
+
+zero domains
+one domain
+many domains
+
+Participation SHALL NOT create duplicate cognition.
+
+Membership SHALL be evaluated dynamically according to policy.
+
+10. Dynamic Projection
+
+Domains are semantic projections.
+
+Membership MAY change without modifying the underlying Cognitive Element.
+
+Example:
+
+Confidence decreases
+
+↓
+
+Membership Policy evaluates to false
+
+↓
+
+Element is no longer visible in the Knowledge Domain
+
+The element itself remains unchanged.
+
+11. Domain Composition
+
+Domains MAY be composed.
+
+Example:
+
+Knowledge
+AND
+Financial
+AND
+Prediction
+
+The resulting composed domain represents the intersection of participating policies.
+
+Composition SHALL NOT duplicate Cognitive Elements.
+
+12. Canonical Domains
+
+RFC-0004 defines the minimum semantic domains recognized by MOS.
+
+These domains define organization, not storage.
+
+12.1 Observation Domain
+
+Purpose:
+
+Represent newly acquired observations awaiting interpretation.
+
+Characteristics:
+
+high ingestion
+transient prominence
+uncertain knowledge
+12.2 Knowledge Domain
+
+Purpose:
+
+Represent validated cognitive knowledge.
+
+Membership typically depends upon:
+
+confidence
+validation
+provenance
+policy compliance
+12.3 Attention Domain
+
+Purpose:
+
+Represent currently active cognition.
+
+Attention is computed dynamically.
+
+Attention SHALL NOT require dedicated storage.
+
+12.4 Planning Domain
+
+Purpose:
+
+Represent intended future cognition.
+
+Includes:
+
+goals
+tasks
+dependencies
+milestones
+12.5 Execution Domain
+
+Purpose:
+
+Represent interactions with external systems.
+
+Execution produces new observations.
+
+12.6 Reflection Domain
+
+Purpose:
+
+Continuously improve cognition.
+
+Typical activities:
+
+consolidation
+contradiction analysis
+summarization
+confidence recalibration
+12.7 Learning Domain
+
+Purpose:
+
+Represent adaptations that improve future cognitive behavior.
+
+Learning SHALL preserve historical provenance.
+
+12.8 Prediction Domain
+
+Purpose:
+
+Represent hypotheses regarding future states.
+
+Predictions SHALL remain distinguishable from observations.
+
+12.9 Governance Domain
+
+Purpose:
+
+Represent policies governing cognition itself.
+
+Includes:
+
+authorization
+trust
+compliance
+security
+ethical constraints
+organizational policies
+12.10 Archive Domain
+
+Purpose:
+
+Represent cognition with low current activation.
+
+Archive SHALL NOT imply deletion.
+
+Archived cognition SHALL remain addressable and explainable.
+
+13. Domain Lifecycle
+
+Domains evolve independently from Cognitive Elements.
+
+A domain MAY:
+
+change policies
+change optimization strategies
+introduce new behavioral semantics
+
+Such changes SHALL NOT invalidate historical provenance.
+
+14. Extensibility
+
+Implementations MAY define additional domains.
+
+Custom domains SHALL:
+
+possess unique identities
+define explicit policies
+preserve MOS semantic guarantees
+
+Existing domains SHALL NOT be redefined incompatibly.
+
+15. Explainability
+
+For every domain membership decision, a compliant implementation SHALL be able to explain:
+
+why an element belongs to the domain
+which policies were evaluated
+which conditions were satisfied or rejected
+when the evaluation occurred
+
+Domain participation SHALL always be explainable.
+
+16. Compliance
+
+An implementation MAY claim compliance with RFC-0004 only if it:
+
+maintains a single canonical Cognitive State Space,
+represents domains as policy-governed semantic namespaces,
+evaluates membership through explicit policies,
+preserves explainability,
+avoids duplicating canonical cognition.
+Appendix A — Domain Architecture
+                  Cognitive State Space
+                           │
+          ┌────────────────┼────────────────┐
+          │                │                │
+          ▼                ▼                ▼
+     Observation      Knowledge       Attention
+          │                │                │
+          └──────────┬─────┴─────┬──────────┘
+                     ▼           ▼
+                 Planning    Reflection
+                     │           │
+                     ▼           ▼
+                 Execution   Learning
+                     │           │
+                     └─────┬─────┘
+                           ▼
+                      Prediction
+                           │
+                           ▼
+                       Governance
+                           │
+                           ▼
+                         Archive
+
+Every domain is a semantic projection over the same Cognitive State Space.
+
+Appendix B — Domain Evaluation Model
+          Cognitive Element
+                   │
+                   ▼
+        Membership Policy Engine
+                   │
+        ┌──────────┼──────────┐
+        ▼          ▼          ▼
+   Knowledge   Attention   Planning
+        ▼          ▼          ▼
+  Behavioral  Behavioral  Behavioral
+    Policies     Policies    Policies
+        └──────────┼──────────┘
+                   ▼
+          Domain-Specific View
+
+No copies are created.
+
+Only membership changes.

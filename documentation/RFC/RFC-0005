@@ -1,0 +1,718 @@
+Memory Operating System (MOS)
+Core Specification
+RFC-0005
+Cognitive Capability Model
+RFC Metadata
+Field	Value
+RFC	RFC-0005
+Title	Cognitive Capability Model
+Status	Draft
+Version	0.1.0
+Category	Normative
+Depends On	RFC-0000, RFC-0001, RFC-0002, RFC-0003, RFC-0004
+Abstract
+
+This document defines the Cognitive Capability Model of the Memory Operating System (MOS).
+
+A Cognitive Capability represents a fundamental semantic ability through which a cognitive system interacts with, interprets, transforms, and improves the Cognitive State Space.
+
+Capabilities define what cognition can do.
+
+Capabilities do not define:
+
+transport mechanisms
+software architecture
+implementation language
+infrastructure
+model providers
+
+All capability execution SHALL preserve MOS guarantees:
+
+provenance
+explainability
+versioning
+policy enforcement
+transactional integrity
+1. Purpose
+
+The previous RFCs define:
+
+RFC-0001:
+
+The principles governing MOS.
+
+RFC-0002:
+
+The dynamics and evolution of cognition.
+
+RFC-0003:
+
+The structure and identity of Cognitive Elements.
+
+RFC-0004:
+
+The organization of cognition through Domains and Meta-Cognitive Elements.
+
+This RFC defines the semantic abilities that operate upon the Cognitive State Space.
+
+2. Capability Axiom
+
+MOS defines:
+
+Every cognitive action SHALL be represented through one or more Cognitive Capabilities.
+
+No external actor SHALL directly modify canonical cognitive state.
+
+All cognitive changes SHALL pass through the capability lifecycle.
+
+3. Capability Architecture
+
+The complete execution model:
+
+                Cognitive Intent
+                       │
+                       ▼
+              Cognitive Capability
+                       │
+                       ▼
+            Cognitive Orchestrator
+                       │
+                       ▼
+              Cognitive Strategy
+                       │
+                       ▼
+              Cognitive Operation
+                       │
+                       ▼
+            Cognitive Transaction
+                       │
+                       ▼
+          Cognitive State Evolution
+
+Each layer has a distinct responsibility.
+
+4. Semantic Responsibility Model
+Intent
+
+Defines:
+
+Why cognition should occur.
+
+Examples:
+
+answer a question
+solve a problem
+improve memory
+execute a task
+
+(Intent is formally defined in RFC-0006.)
+
+Capability
+
+Defines:
+
+What cognitive ability is required.
+
+Examples:
+
+Recall
+Learn
+Plan
+Reflect
+Orchestrator
+
+Defines:
+
+Which cognitive strategies should be used.
+
+The Orchestrator selects, combines, and supervises strategies.
+
+Strategy
+
+Defines:
+
+How a capability is semantically achieved.
+
+Examples:
+
+Recall strategies:
+
+Graph retrieval
+Vector retrieval
+Episodic reconstruction
+Hybrid retrieval
+Operation
+
+Defines:
+
+Atomic semantic transformations.
+
+Operations are defined in RFC-0002.
+
+Transaction
+
+Defines:
+
+Safe and atomic cognitive state changes.
+
+Transactions are defined in RFC-0003.
+
+5. Cognitive Capability Definition
+
+A Cognitive Capability SHALL be a first-class semantic object.
+
+A capability SHALL contain:
+
+Identity
+
+A globally unique identifier.
+
+Purpose
+
+A description of the cognitive ability provided.
+
+Contract
+
+A semantic contract defining:
+
+inputs
+outputs
+preconditions
+postconditions
+constraints
+policies
+supported domains
+explainability requirements
+failure behavior
+Provenance
+
+The origin and history of the capability.
+
+Version
+
+All capability changes SHALL be versioned.
+
+6. Capability Contract Model
+
+Every capability SHALL define:
+
+Capability
+
+Identity
+
+Purpose
+
+Input Semantics
+
+Output Semantics
+
+Preconditions
+
+Postconditions
+
+Supported Domains
+
+Required Policies
+
+Available Strategies
+
+Explainability Requirements
+
+Failure Semantics
+7. Capability Lifecycle
+
+Capabilities follow:
+
+Created
+
+↓
+
+Validated
+
+↓
+
+Published
+
+↓
+
+Available
+
+↓
+
+Executed
+
+↓
+
+Evaluated
+
+↓
+
+Improved
+
+↓
+
+Versioned
+
+↓
+
+Deprecated
+
+Historical capability versions SHALL remain explainable.
+
+8. Core Cognitive Capabilities
+
+RFC-0005 defines the mandatory MOS capability set.
+
+8.1 Observe Capability
+Purpose
+
+Acquire information.
+
+Sources may include:
+
+humans
+agents
+sensors
+documents
+external systems
+
+Creates:
+
+observations
+events
+source references
+
+Observe SHALL NOT silently modify existing knowledge.
+
+8.2 Remember Capability
+Purpose
+
+Transform observations into persistent cognition.
+
+Lifecycle:
+
+Observation
+
+↓
+
+Interpretation
+
+↓
+
+Entity Resolution
+
+↓
+
+Fact Creation
+
+↓
+
+Relationship Creation
+
+↓
+
+Provenance Assignment
+
+↓
+
+Memory Update
+8.3 Recall Capability
+Purpose
+
+Retrieve relevant cognition from the Cognitive State Space.
+
+Recall considers:
+
+relevance
+confidence
+freshness
+activation
+domain membership
+policies
+
+Recall SHALL provide explanation of retrieved cognition.
+
+8.4 Search Capability
+Purpose
+
+Locate candidate Cognitive Elements.
+
+Supported approaches may include:
+
+symbolic search
+semantic search
+graph traversal
+temporal search
+hybrid retrieval
+
+Search provides candidates.
+
+Recall determines cognitive relevance.
+
+8.5 Explain Capability
+Purpose
+
+Provide understanding of cognitive origin and reasoning.
+
+Explain SHALL reconstruct:
+
+provenance
+relationships
+policies
+transactions
+versions
+decisions
+8.6 Reason Capability
+Purpose
+
+Generate new cognitive understanding.
+
+May produce:
+
+conclusions
+hypotheses
+relationships
+interpretations
+
+Reason SHALL preserve uncertainty.
+
+8.7 Plan Capability
+Purpose
+
+Create future-oriented cognitive structures.
+
+Produces:
+
+goals
+tasks
+dependencies
+milestones
+8.8 Execute Capability
+Purpose
+
+Interact with external systems.
+
+Execution SHALL produce:
+
+action records
+outcomes
+failures
+observations
+
+External side effects SHALL be recorded.
+
+8.9 Reflect Capability
+Purpose
+
+Improve cognitive organization.
+
+Reflection may perform:
+
+consolidation
+contradiction detection
+summarization
+confidence adjustment
+memory optimization
+8.10 Learn Capability
+Purpose
+
+Improve future cognitive behavior.
+
+Learning may update:
+
+strategies
+policies
+models
+preferences
+
+Learning SHALL preserve previous versions.
+
+8.11 Predict Capability
+Purpose
+
+Generate possible future states.
+
+Predictions SHALL contain:
+
+assumptions
+confidence
+provenance
+
+Predictions SHALL NOT be represented as observations.
+
+8.12 Govern Capability
+Purpose
+
+Apply Meta-Cognitive control.
+
+Govern manages:
+
+policies
+permissions
+trust
+constraints
+compliance
+8.13 Monitor Capability
+Purpose
+
+Observe cognitive system health.
+
+Measures:
+
+quality
+latency
+confidence
+failures
+resource usage
+9. Cognitive Orchestrators
+
+A Cognitive Orchestrator is a Meta-Cognitive Element responsible for coordinating capability execution.
+
+An Orchestrator SHALL NOT directly modify cognition.
+
+Responsibilities include:
+
+selecting strategies
+composing strategies
+scheduling execution
+applying optimization policies
+managing fallback strategies
+evaluating execution quality
+
+Example:
+
+Recall Capability
+
+↓
+
+Recall Orchestrator
+
+↓
+
+Graph Strategy
+
++
+
+Vector Strategy
+
++
+
+Ranking Strategy
+
+↓
+
+Operations
+
+↓
+
+Transaction
+10. Cognitive Strategies
+
+Strategies are Meta-Cognitive Elements describing possible realizations of capabilities.
+
+A Strategy SHALL contain:
+
+identity
+purpose
+applicable capabilities
+applicable domains
+required policies
+expected outcomes
+limitations
+performance characteristics
+
+Example:
+
+Hybrid Recall Strategy
+
+Capability:
+
+Recall
+
+
+Methods:
+
+Graph traversal
+
++
+
+Vector similarity
+
++
+
+Temporal filtering
+
+
+Expected:
+
+High relevance
+
+Higher latency
+11. Strategy Selection
+
+Strategy selection SHALL consider:
+
+intent
+policies
+domain context
+confidence requirements
+resource availability
+optimization objectives
+
+Selection SHALL be explainable.
+
+12. Capability Composition
+
+Capabilities MAY compose.
+
+Example:
+
+User Question
+
+↓
+
+Recall
+
+↓
+
+Explain
+
+↓
+
+Reason
+
+↓
+
+Answer
+
+All composed capabilities SHALL preserve provenance.
+
+13. Capability Explainability
+
+Every capability execution SHALL generate an execution trace.
+
+The trace SHALL contain:
+
+Intent
+
+↓
+
+Capability
+
+↓
+
+Orchestrator
+
+↓
+
+Strategy
+
+↓
+
+Operations
+
+↓
+
+Transactions
+
+↓
+
+State Changes
+14. Capability Security
+
+Capabilities SHALL respect:
+
+Governance Policies
+Domain Policies
+Access Controls
+Trust Models
+
+No capability bypasses governance.
+
+15. Capability Discovery
+
+MOS implementations SHOULD support capability discovery.
+
+Discovery allows systems to determine:
+
+available capabilities
+versions
+contracts
+requirements
+supported domains
+strategies
+
+This enables future agent interoperability.
+
+16. Extension Capabilities
+
+Implementations MAY define additional capabilities.
+
+Examples:
+
+Translate
+Simulate
+Negotiate
+Diagnose
+Debate
+Optimize
+Coordinate
+
+Extensions SHALL follow RFC-0005 semantics.
+
+17. Compliance
+
+A MOS implementation complies with RFC-0005 if:
+
+capabilities are semantic objects
+capability execution follows the defined lifecycle
+strategies are separated from capabilities
+orchestration is explicit
+all state changes occur through transactions
+execution remains explainable
+Appendix A — Complete Cognitive Execution Stack
+                    Intent
+
+                       │
+
+                       ▼
+
+                 Capability
+
+                       │
+
+                       ▼
+
+               Orchestrator
+
+                       │
+
+                       ▼
+
+                  Strategy
+
+                       │
+
+                       ▼
+
+                 Operation
+
+                       │
+
+                       ▼
+
+               Transaction
+
+                       │
+
+                       ▼
+
+          Cognitive State Evolution
+RFC-0005 Result
+
+With RFC-0005 complete, MOS now has:
+
+✅ A cognitive state model
+✅ A semantic organization model
+✅ A policy/meta-cognition model
+✅ A capability execution model

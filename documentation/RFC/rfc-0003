@@ -1,0 +1,461 @@
+Memory Operating System (MOS)
+Core Specification
+RFC-0003
+Cognitive Element Model
+RFC Metadata
+Field	Value
+RFC	RFC-0003
+Title	Cognitive Element Model
+Status	Draft
+Version	0.1.0
+Category	Normative
+Depends On	RFC-0000, RFC-0001, RFC-0002
+Abstract
+
+This document defines the canonical structure of every Cognitive Element within the Memory Operating System (MOS).
+
+It establishes the semantic model governing Cognitive Elements, Cognitive Facets, Cognitive Relationships, Cognitive Operations, Cognitive Transactions, Cognitive Events, Version Evolution, and the MOS Semantic Layer.
+
+This specification intentionally defines semantics rather than implementation.
+
+Any storage engine, graph database, API, programming language, or runtime MAY implement these semantics differently, provided the observable behavior remains identical.
+
+1. Purpose
+
+RFC-0001 defines what cognition is.
+
+RFC-0002 defines how cognition evolves.
+
+RFC-0003 defines what cognition is composed of.
+
+It specifies the universal structure shared by every Cognitive Element in the Cognitive State Space.
+
+2. Scope
+
+This specification defines:
+
+Cognitive Elements
+Cognitive Facets
+Cognitive Relationships
+Cognitive Operations
+Cognitive Transactions
+Cognitive Events
+Version Evolution
+Semantic Composition
+Semantic Layer
+
+This specification does not define:
+
+Memory domains
+Storage schemas
+SQL
+Graph databases
+Serialization
+APIs
+Network protocols
+Worker implementations
+3. Composition Axiom
+
+MOS defines one universal rule of composition.
+
+Every Cognitive Element SHALL consist of a stable Cognitive Identity composed with one or more Cognitive Facets, modified exclusively through Cognitive Operations executed within Cognitive Transactions.
+
+Every concept defined later derives from this axiom.
+
+4. The MOS Semantic Layer
+
+MOS separates semantics from implementation.
+
+                    MOS Core Specification
+────────────────────────────────────────────────────
+
+                MOS Semantic Layer
+
+────────────────────────────────────────────────────
+
+Cognitive State Space
+
+Cognitive Elements
+
+Cognitive Facets
+
+Cognitive Relationships
+
+Cognitive Operations
+
+Cognitive Transactions
+
+Cognitive Events
+
+Dynamics
+
+Policies
+
+Constraints
+
+────────────────────────────────────────────────────
+
+             Implementation Layer
+
+────────────────────────────────────────────────────
+
+PostgreSQL
+
+Apache AGE
+
+Neo4j
+
+Redis
+
+Kafka
+
+REST
+
+gRPC
+
+Workers
+
+SDKs
+
+CLI
+
+Dashboard
+
+The Semantic Layer SHALL define behavior.
+
+The Implementation Layer SHALL realize behavior.
+
+Implementations MAY differ internally.
+
+They SHALL preserve semantic equivalence.
+
+5. Cognitive Element
+
+A Cognitive Element is the universal semantic primitive of MOS.
+
+Every persistent cognitive artifact SHALL be represented by exactly one Cognitive Element.
+
+No persistent cognition SHALL exist outside a Cognitive Element.
+
+Every Cognitive Element SHALL possess:
+
+Identity
+Semantic meaning
+Lifecycle
+Version history
+Provenance
+Relationships
+Operations
+
+The internal representation is implementation-defined.
+
+6. Cognitive Identity
+
+Identity represents conceptual continuity rather than storage identity.
+
+A Cognitive Identity SHALL remain stable throughout the lifetime of the represented concept.
+
+Identity SHALL survive:
+
+Version creation
+Storage migration
+Graph projection
+Replication
+Synchronization
+Serialization
+
+Identity SHALL NOT be reassigned.
+
+Implementation identifiers (UUIDs, hashes, etc.) are not part of the semantic model.
+
+7. Cognitive Facets
+
+A Cognitive Facet represents one independent semantic dimension of a Cognitive Element.
+
+Facets are compositional.
+
+Facets SHALL be orthogonal.
+
+A facet SHALL describe one concern only.
+
+A facet SHALL NOT modify another facet directly.
+
+A facet MAY evolve independently.
+
+Future specifications define canonical facet types.
+
+8. Cognitive Relationships
+
+Relationships are Cognitive Elements.
+
+Relationships therefore possess:
+
+Identity
+Facets
+Version history
+Provenance
+Operations
+Events
+
+Relationships MAY connect:
+
+Elements
+Relationships
+Transactions
+Events
+
+MOS therefore supports higher-order cognition.
+
+9. Cognitive Operations
+
+A Cognitive Operation represents one atomic semantic transformation.
+
+Operations SHALL be deterministic with respect to their declared inputs.
+
+Operations SHALL preserve:
+
+Identity
+Provenance
+Version history
+Constraints
+Policies
+
+Operations SHALL NOT directly modify storage.
+
+Operations modify semantic state.
+
+10. Cognitive Transactions
+
+A Cognitive Transaction groups one or more Cognitive Operations into one atomic cognitive change.
+
+A transaction SHALL either:
+
+Complete successfully, or
+Produce no semantic change.
+
+Transactions SHALL preserve consistency of the Cognitive State Space.
+
+Transactions SHALL expose:
+
+Identity
+Timestamp
+Actor
+Provenance
+Operation set
+Resulting events
+
+The implementation of transactional guarantees is implementation-defined.
+
+11. Cognitive Events
+
+Every successful Cognitive Operation SHALL generate one or more Cognitive Events.
+
+Events represent immutable historical facts describing cognitive evolution.
+
+Events SHALL NEVER be modified.
+
+Events SHALL NEVER be deleted.
+
+Events SHALL remain permanently reconstructable.
+
+Event sourcing MAY be used.
+
+Event semantics SHALL be preserved.
+
+12. Version Evolution
+
+MOS never overwrites cognition.
+
+Instead:
+
+State V1
+
+↓
+
+Transaction
+
+↓
+
+Operations
+
+↓
+
+Events
+
+↓
+
+State V2
+
+Version evolution SHALL preserve:
+
+Identity
+Provenance
+Historical reconstruction
+Explainability
+
+Alternative version branches MAY exist.
+
+13. Semantic Composition
+
+Every Cognitive Element SHALL satisfy the following composition rules.
+
+Exactly one identity.
+
+One or more facets.
+
+Zero or more relationships.
+
+Zero or more operations.
+
+Zero or more events.
+
+Unlimited versions.
+
+Unlimited projections.
+
+Semantic meaning SHALL emerge from composition rather than inheritance.
+
+14. Semantic Consistency
+
+Every compliant implementation SHALL preserve:
+
+Identity consistency.
+
+Relationship consistency.
+
+Version consistency.
+
+Transaction consistency.
+
+Provenance consistency.
+
+Policy consistency.
+
+Constraint consistency.
+
+Semantic consistency SHALL be independent of storage implementation.
+
+15. Explainability
+
+Every Cognitive Element SHALL be explainable.
+
+An implementation SHALL reconstruct:
+
+Origin
+Supporting observations
+Producing operations
+Producing transaction
+Version lineage
+Relationships
+Policies
+Constraints
+
+Explainability SHALL NOT require regenerating reasoning using an external model.
+
+16. Extensibility
+
+MOS is extensible by construction.
+
+Implementations MAY define:
+
+New Facets
+New Operations
+New Relationship Types
+New Policies
+New Constraints
+
+Extensions SHALL preserve semantic compatibility.
+
+Existing semantics SHALL NOT be redefined.
+
+17. Compliance
+
+An implementation MAY claim:
+
+MOS Core v0.1 – RFC-0003 Compliant
+
+only if every normative requirement contained within this specification is satisfied.
+Appendix A — The Semantic Architecture
+                     Cognitive State Space
+                               │
+          ┌────────────────────┼────────────────────┐
+          │                    │                    │
+          ▼                    ▼                    ▼
+  Cognitive Elements    Cognitive Policies   Cognitive Constraints
+          │
+          ▼
+   Cognitive Identity
+          │
+          ▼
+    Cognitive Facets
+          │
+          ▼
+ Cognitive Relationships
+          │
+          ▼
+ Cognitive Transactions
+          │
+          ▼
+  Cognitive Operations
+          │
+          ▼
+    Cognitive Events
+          │
+          ▼
+    Version Evolution
+          │
+          ▼
+      Semantic Views
+          │
+          ▼
+    Implementation Layer
+Appendix B — The Cognitive Mutation Model
+
+One of the biggest refinements in this RFC is introducing Cognitive Transactions as the canonical unit of change.
+
+Every modification to the Cognitive State Space follows the same semantic lifecycle:
+
+External Stimulus
+        │
+        ▼
+ Cognitive Force
+        │
+        ▼
+Cognitive Transaction
+        │
+        ▼
+Cognitive Operations
+        │
+        ▼
+ Cognitive Events
+        │
+        ▼
+ Version Evolution
+        │
+        ▼
+ Updated Cognitive State
+
+This model gives MOS a clean separation of concerns:
+
+Forces express why cognition changes.
+Transactions define the atomic unit of change.
+Operations define what changes.
+Events record what happened.
+Versions preserve history.
+State Space represents current cognition.
+The next refinement: RFC-0004
+
+After completing RFC-0003, I think the core kernel is now essentially complete. The next RFC should deliberately avoid talking about databases or storage and instead answer a different question:
+
+How is cognition organized?
+
+Rather than introducing "episodic memory," "semantic memory," "working memory," and similar concepts as separate storage systems, RFC-0004 should define them as Cognitive Domains—logical projections over the same Cognitive State Space, each with its own activation rules, lifecycle, and behavioral semantics.
+
+That keeps the architecture beautifully layered:
+
+RFC-0001 — What cognition is (Core Principles)
+RFC-0002 — How cognition changes (Cognitive Dynamics)
+RFC-0003 — What cognition is composed of (Element Model)
+RFC-0004 — How cognition is organized (Cognitive Domains)
+
+From there, the Storage Spec and API Spec become straightforward mappings of these semantics into concrete implementations, without introducing any new cognitive concepts. I think that's a strong sign that the architecture is converging toward a stable and reusable foundation.

@@ -1,0 +1,476 @@
+Originally we talked about writing a PostgreSQL schema.
+
+I don't think that's the correct abstraction anymore.
+
+I think we should write the MOS Storage Specification first.
+
+That specification should be completely independent of PostgreSQL.
+
+Think of PostgreSQL like this:
+
+MOS Core Specification
+          │
+          ▼
+MOS Storage Specification
+          │
+ ┌────────┼────────┐
+ ▼        ▼        ▼
+Postgres  Neo4j   FoundationDB
+ ▼
+pgvector
+ ▼
+Redis
+ ▼
+Object Storage
+
+The Storage Specification becomes the contract.
+
+PostgreSQL becomes one implementation.
+
+This is exactly how LLVM works.
+
+LLVM IR
+
+↓
+
+x86
+
+↓
+
+ARM
+
+↓
+
+RISC-V
+
+The IR is stable.
+
+Backends evolve independently.
+
+I think MOS should do the same.
+
+That is a huge architectural improvement.
+
+Proposed document hierarchy
+
+Instead of immediately writing SQL, I would create the storage documents in layers.
+
+MOS Storage Specification
+│
+├── Storage Philosophy
+│
+├── Storage Architecture
+│
+├── Storage Objects
+│
+├── Storage Lifecycle
+│
+├── Storage Transactions
+│
+├── Storage Consistency
+│
+├── Storage Indexes
+│
+├── Storage Versioning
+│
+├── Storage Distribution
+│
+├── Storage Performance
+│
+├── Storage Security
+│
+├── Storage APIs
+│
+└── PostgreSQL Mapping
+
+Notice something important.
+
+Only the final chapter mentions PostgreSQL.
+
+Everything before that is universal.
+
+I also want to introduce something I think will become one of MOS's biggest strengths
+
+Instead of talking about tables...
+
+I think we should define Storage Objects.
+
+Just like RFC-0003 defined Cognitive Elements.
+
+Storage should define Storage Objects.
+
+Examples
+
+Memory Object
+
+Fact Object
+
+Episode Object
+
+Entity Object
+
+Plan Object
+
+Reflection Object
+
+Embedding Object
+
+Graph Object
+
+Blob Object
+
+Cache Object
+
+Telemetry Object
+
+Version Object
+
+Identity Object
+
+Capability Object
+
+Each object has:
+
+Identity
+
+Metadata
+
+Version
+
+Lifecycle
+
+Relationships
+
+Storage Policy
+
+Indexes
+
+Replication Policy
+
+Retention
+
+Compression
+
+Encryption
+
+Ownership
+
+Notice:
+
+Storage doesn't care whether it's PostgreSQL, Neo4j or S3.
+
+Storage only cares about objects.
+
+That's exactly what we want.
+
+Another improvement
+
+I think we should stop thinking in terms of tables entirely.
+
+Instead define Storage Domains.
+
+Example
+
+Identity Domain
+
+Memory Domain
+
+Planning Domain
+
+Execution Domain
+
+Reflection Domain
+
+Knowledge Domain
+
+Graph Domain
+
+Embedding Domain
+
+Communication Domain
+
+Governance Domain
+
+Telemetry Domain
+
+Cache Domain
+
+Then later:
+
+PostgreSQL Schema
+
+↓
+
+implements
+
+↓
+
+Storage Domain
+
+This is much cleaner.
+
+I think the Storage Specification should look like this
+MOS Storage Specification v0.1
+Part I — Storage Foundation
+Chapter 1
+
+Storage Philosophy
+
+Chapter 2
+
+Storage Principles
+
+Chapter 3
+
+Storage Domains
+
+Chapter 4
+
+Storage Objects
+
+Chapter 5
+
+Storage Lifecycle
+
+Part II — Logical Storage Model
+Chapter 6
+
+Memory Spaces
+
+Chapter 7
+
+Storage Relationships
+
+Chapter 8
+
+Object Identity
+
+Chapter 9
+
+Versioning
+
+Chapter 10
+
+Transactions
+
+Part III — Physical Storage
+Chapter 11
+
+Partitioning
+
+Chapter 12
+
+Indexes
+
+Chapter 13
+
+Compression
+
+Chapter 14
+
+Replication
+
+Chapter 15
+
+Distribution
+
+Part IV — Specialized Storage
+Chapter 16
+
+Graph Storage
+
+Chapter 17
+
+Embedding Storage
+
+Chapter 18
+
+Blob Storage
+
+Chapter 19
+
+Cache Storage
+
+Chapter 20
+
+Telemetry Storage
+
+Part V — Reliability
+Chapter 21
+
+Consistency
+
+Chapter 22
+
+Recovery
+
+Chapter 23
+
+Auditing
+
+Chapter 24
+
+Encryption
+
+Chapter 25
+
+Backup
+
+Part VI — PostgreSQL Reference Implementation
+
+This becomes the implementation.
+
+Schemas
+
+Tables
+
+Indexes
+
+Partitioning
+
+Extensions
+
+Workers
+
+Triggers
+
+Materialized Views
+
+Functions
+
+Migrations
+
+I think we should introduce one more abstraction
+
+This idea came to me while reading back through the RFCs.
+
+RFC-0003 introduced Cognitive Elements.
+
+RFC-0014 introduced Memory Spaces.
+
+Storage needs something equivalent.
+
+I propose introducing Storage Classes.
+
+Not every object should be stored the same way.
+
+For example:
+
+Storage Class	Purpose	Example
+Immutable	Never changes after creation	Events, observations
+Versioned	New versions replace old without losing history	Facts, entities, policies
+Temporal	State changes over time	Goals, plans, world state
+Derived	Computed from other objects	Embeddings, graph projections, summaries
+Ephemeral	Exists briefly	Working memory, active context, caches
+Archive	Rarely accessed but retained	Historical conversations, old episodes
+External	Stored outside the primary database	PDFs, images, videos, datasets
+
+This is a powerful abstraction because it tells the storage engine how an object behaves, independent of the database technology.
+
+I think we should structure the Storage Specification like an engineering standard
+
+Instead of writing it like documentation, I'd model it after an RFC or database specification.
+
+MOS Storage Specification
+
+Part I
+
+Storage Philosophy
+
+↓
+
+Storage Objects
+
+↓
+
+Storage Classes
+
+↓
+
+Storage Domains
+
+↓
+
+Storage Lifecycle
+
+↓
+
+Consistency
+
+↓
+
+Transactions
+
+↓
+
+Distribution
+
+↓
+
+Reference Implementation
+
+That means the PostgreSQL implementation later becomes almost mechanical:
+
+Storage Object
+
+↓
+
+Storage Class
+
+↓
+
+Storage Domain
+
+↓
+
+PostgreSQL Schema
+
+↓
+
+Tables
+
+↓
+
+Indexes
+
+↓
+
+Extensions
+
+↓
+
+Workers
+
+↓
+
+API
+My proposal for how we build it
+
+Rather than trying to write the entire Storage Specification in one pass, I suggest we treat it the same way we treated the MOS Core RFCs: as a sequence of focused specification documents.
+
+The first document should become the foundation for everything that follows:
+
+MOS Storage Specification (MSS) — Part I: Storage Foundation
+
+It would define:
+
+Storage Philosophy
+Storage Axioms
+Storage Domains
+Storage Objects
+Storage Classes
+Storage Identity
+Storage Lifecycle
+Storage Guarantees
+Compliance
+
+Every subsequent chapter—transactions, indexes, PostgreSQL mappings, worker behavior—would build on those definitions without introducing conflicting concepts.
+
+I think this is the right evolution of the project because we've kept a strict separation all the way through:
+
+MOS Core RFCs define what cognition is.
+MOS Storage Specification will define how cognition persists and evolves.
+MOS API Specification will define how cognition is accessed.
+MOS Worker Specification will define how cognition changes over time.
+
+That separation of concerns is what will make MOS feel like a true operating substrate rather than a collection of database tables.

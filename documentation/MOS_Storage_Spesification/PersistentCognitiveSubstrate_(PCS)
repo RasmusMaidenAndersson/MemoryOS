@@ -1,0 +1,527 @@
+Memory Operating System (MOS)
+Persistent Cognitive Substrate (PCS)
+Specification v0.1
+Part I — Foundation
+Abstract
+
+The Persistent Cognitive Substrate (PCS) defines the persistent representation of cognition within the Memory Operating System.
+
+The PCS is not a database implementation.
+
+It is the logical persistence layer upon which all cognitive processes depend.
+
+The PCS specifies:
+
+how cognitive information is represented,
+how it evolves,
+how it is preserved,
+how it is related,
+how it is versioned,
+how it is distributed,
+how it is explained.
+
+Any storage technology that conforms to this specification SHALL be considered a valid implementation of the MOS Persistent Cognitive Substrate.
+
+Chapter 1
+Purpose
+
+RFC-0014 defines the architecture of cognition.
+
+The PCS defines how that architecture persists across time.
+
+Unlike conventional databases, the PCS is designed around cognitive semantics rather than storage mechanics.
+
+Its purpose is to preserve not merely data, but the complete cognitive state of an intelligent system.
+
+Chapter 2
+Storage Philosophy
+
+MOS defines the following principle:
+
+Storage exists to preserve cognition, not records.
+
+Traditional databases preserve rows.
+
+MOS preserves knowledge.
+
+Traditional systems answer:
+
+"What data exists?"
+
+MOS answers:
+
+"What does the cognitive system know, why does it believe it, how certain is it, how has that belief changed, and how does it influence future reasoning?"
+
+Storage therefore becomes an active participant in cognition.
+
+Chapter 3
+Storage Axiom
+
+MOS defines:
+
+Every persistent cognitive element SHALL exist as a first-class storage object.
+
+Persistence SHALL never depend upon:
+
+prompts,
+conversation history,
+serialized application state.
+
+The PCS is the authoritative source of long-term cognition.
+
+Chapter 4
+Storage Principles
+
+The PCS SHALL satisfy the following principles.
+
+Principle 1
+
+Persistence before optimization.
+
+Knowledge SHALL never be discarded solely for performance reasons.
+
+Principle 2
+
+Identity before location.
+
+Objects are identified by globally unique identities.
+
+Storage location is an implementation detail.
+
+Principle 3
+
+Version before mutation.
+
+Objects evolve through versions.
+
+Historical states remain reconstructable.
+
+Principle 4
+
+Relationships before duplication.
+
+Knowledge SHALL reference existing objects whenever possible.
+
+Principle 5
+
+Semantics before implementation.
+
+Storage reflects cognitive meaning rather than database constraints.
+
+Principle 6
+
+Explainability before efficiency.
+
+Every stored conclusion SHALL preserve its provenance.
+
+Principle 7
+
+Deterministic persistence.
+
+Equivalent cognitive inputs SHALL produce equivalent persistent state.
+
+Principle 8
+
+Implementation independence.
+
+The PCS SHALL remain independent of any particular database technology.
+
+Chapter 5
+Persistent Storage Domains
+
+The PCS organizes persistence into Storage Domains.
+
+A Storage Domain groups Storage Objects with common semantics, lifecycle, and operational characteristics.
+
+Initial domains include:
+
+Identity Domain
+
+Memory Domain
+
+Knowledge Domain
+
+Graph Domain
+
+Planning Domain
+
+Execution Domain
+
+Communication Domain
+
+Governance Domain
+
+Resource Domain
+
+Telemetry Domain
+
+Embedding Domain
+
+Document Domain
+
+Cache Domain
+
+Archive Domain
+
+Storage Domains define logical ownership rather than physical storage.
+
+Chapter 6
+Storage Objects
+
+Storage Objects are the fundamental persistent units of cognition.
+
+Every Storage Object SHALL possess:
+
+Persistent Identity
+Storage Class
+Domain
+Version
+Provenance
+Lifecycle State
+Ownership
+Relationships
+Metadata
+Security Context
+Temporal Context
+
+Storage Objects SHALL be technology-independent.
+
+Chapter 7
+Storage Classes
+
+The PCS defines Storage Classes that describe behavioral characteristics.
+
+Immutable
+
+Never modified after creation.
+
+Examples:
+
+Events
+Observations
+Raw Messages
+Versioned
+
+Represent evolving knowledge.
+
+Examples:
+
+Facts
+Entities
+Policies
+Skills
+Temporal
+
+Represent continuously changing state.
+
+Examples:
+
+Goals
+Plans
+World State
+Active Tasks
+Derived
+
+Produced from other objects.
+
+Examples:
+
+Embeddings
+Summaries
+Graph Projections
+Similarity Indexes
+
+Derived objects SHALL preserve dependencies upon source objects.
+
+Ephemeral
+
+Short-lived persistent objects.
+
+Examples:
+
+Working Memory Snapshots
+Active Context
+Session Cache
+Archive
+
+Rarely accessed historical information.
+
+Examples:
+
+Completed Episodes
+Historical Plans
+Conversation Archives
+External
+
+Objects persisted outside the PCS but referenced by it.
+
+Examples:
+
+PDFs
+Images
+Audio
+Video
+Large datasets
+Chapter 8
+Storage Identity
+
+Every Storage Object SHALL possess a globally unique Persistent Identifier (PID).
+
+A PID SHALL remain stable throughout the object's lifetime.
+
+Storage implementations SHALL NOT expose physical storage identifiers as cognitive identities.
+
+Logical identity and physical location SHALL remain independent.
+
+Chapter 9
+Storage Lifecycle
+
+All Storage Objects SHALL follow a lifecycle.
+
+Created
+
+↓
+
+Validated
+
+↓
+
+Persistent
+
+↓
+
+Referenced
+
+↓
+
+Versioned
+
+↓
+
+Consolidated
+
+↓
+
+Archived
+
+↓
+
+Retained
+
+Deletion is not part of the normal lifecycle.
+
+Supersession replaces deletion.
+
+Chapter 10
+Persistence Guarantees
+
+The PCS SHALL guarantee:
+
+identity stability,
+provenance preservation,
+version history,
+referential integrity,
+deterministic reconstruction,
+temporal consistency,
+explainability,
+auditability.
+
+These guarantees define the minimum behavioral contract for all implementations.
+
+Chapter 11
+Cognitive Consistency
+
+Unlike relational consistency alone, cognitive consistency requires that:
+
+facts remain attributable,
+confidence remains explainable,
+contradictions remain detectable,
+memory activation remains reproducible,
+reasoning can be reconstructed.
+
+Storage therefore preserves cognitive coherence rather than only transactional correctness.
+
+Chapter 12
+Provenance
+
+Every persistent object SHALL preserve complete provenance.
+
+Minimum provenance includes:
+
+originating actor,
+originating observation,
+originating event,
+originating process,
+timestamp,
+confidence,
+transformation history.
+
+No knowledge SHALL exist without provenance.
+
+Chapter 13
+Temporal Semantics
+
+Every Storage Object exists within time.
+
+The PCS distinguishes:
+
+Creation Time
+Observation Time
+Valid Time
+Transaction Time
+Version Time
+Archive Time
+
+These timestamps SHALL remain independently queryable.
+
+Chapter 14
+Cognitive Relationships
+
+Storage Objects SHALL relate through explicit references.
+
+Relationships SHALL be typed.
+
+Examples:
+
+Derived From
+Observed By
+References
+Depends On
+Supersedes
+Contradicts
+Supports
+Contains
+Implements
+Produces
+
+Relationships form the structural backbone of persistent cognition.
+
+Chapter 15
+Explainability Contract
+
+The PCS SHALL support complete reconstruction of any cognitive state.
+
+For any persistent conclusion, the substrate SHALL be capable of answering:
+
+What is known?
+Why is it believed?
+Which evidence supports it?
+Which observations contributed?
+Which versions existed previously?
+Which reasoning process produced it?
+Which policies influenced it?
+Which confidence model was applied?
+
+This contract extends beyond debugging; it is a core architectural guarantee.
+
+Chapter 16
+Compliance
+
+A Persistent Cognitive Substrate implementation conforms to PCS v0.1 if it satisfies:
+
+Persistent Storage Objects.
+Stable Persistent Identity.
+Explicit Storage Domains.
+Explicit Storage Classes.
+Version preservation.
+Provenance preservation.
+Relationship preservation.
+Temporal semantics.
+Explainability.
+Cognitive consistency.
+Technology independence.
+Part I Result
+
+The Persistent Cognitive Substrate Foundation establishes the universal persistence model for MOS.
+
+It deliberately contains no PostgreSQL-specific concepts—no tables, schemas, indexes, triggers, or SQL types.
+
+Instead, it defines the semantic contract that every storage backend must honor.
+
+Architectural refinement
+
+While writing this, one additional abstraction emerged that I believe will become as important as Cognitive Elements, Memory Spaces, and Storage Objects:
+
+Persistence Policies
+
+Storage Classes describe how an object behaves.
+
+Persistence Policies describe how the substrate manages it over time.
+
+Examples include:
+
+Hot — optimized for low-latency access (working memory snapshots, active context).
+Warm — frequently accessed operational knowledge (facts, entities, active plans).
+Cold — infrequently accessed but still online (completed projects, old episodes).
+Frozen — immutable archival data retained for audit or compliance.
+Replicated — maintained across multiple nodes for resilience or locality.
+Encrypted — protected with additional confidentiality guarantees.
+Pinned — exempt from automatic compaction or archival due to operational importance.
+
+Unlike Storage Classes, Persistence Policies are dynamic. An object can move from Hot to Warm to Cold during its lifecycle without changing what kind of object it is.
+
+I believe this separation between what an object is (Storage Class) and how it is managed (Persistence Policy) will make the implementation dramatically cleaner when we begin mapping PCS onto PostgreSQL partitions, Redis caches, object storage, replication strategies, and eventually distributed MOS clusters. This is exactly the kind of abstraction that keeps the architecture flexible while preserving a stable conceptual model.
+
+Cognitive Object Model (COM)
+
+Everything persistent should become a Cognitive Object.
+
+Not because of storage.
+
+Because cognition itself reasons about objects.
+
+Example:
+
+Framework Laptop
+
+↓
+
+Entity
+
+↓
+
+Knowledge Object
+
+↓
+
+Persistent Storage Object
+
+↓
+
+PostgreSQL Row
+
+Every layer is a different representation of the same thing.
+
+That means we now have a complete abstraction stack:
+
+Reality
+
+↓
+
+Observation
+
+↓
+
+Cognitive Element
+
+↓
+
+Memory Space
+
+↓
+
+Cognitive Object
+
+↓
+
+Storage Object
+
+↓
+
+Storage Backend
+
+↓
+
+Physical Storage
+
+This is exactly the separation of concerns that makes large systems maintainable.

@@ -1,0 +1,1005 @@
+# Memory Operating System (MOS)
+
+# Worker Specification v0.1
+
+---
+
+# Abstract
+
+The MOS Worker Specification defines the architecture, responsibilities, communication model, lifecycle, and operational requirements of background processes responsible for maintaining the Persistent Cognitive Substrate.
+
+Workers are autonomous system components that transform raw information into structured cognition, maintain memory integrity, improve system performance, and enable continuous learning.
+
+Workers SHALL operate independently from storage implementations and communicate through defined MOS interfaces.
+
+---
+
+# Chapter 1
+
+# Purpose
+
+The purpose of MOS Workers is to provide continuous cognitive maintenance.
+
+Workers transform:
+
+```
+Experience
+
+↓
+
+Observation
+
+↓
+
+Knowledge
+
+↓
+
+Understanding
+
+↓
+
+Optimization
+```
+
+Without workers, MOS is only persistent storage.
+
+With workers, MOS becomes an evolving cognitive system.
+
+---
+
+# Chapter 2
+
+# Worker Philosophy
+
+MOS Workers follow five principles.
+
+---
+
+## Principle 1
+
+## Single Responsibility
+
+Each worker performs one cognitive function.
+
+Example:
+
+Good:
+
+```
+Entity Extraction Worker
+```
+
+Bad:
+
+```
+AI Worker That Does Everything
+```
+
+---
+
+## Principle 2
+
+## Event Driven
+
+Workers respond to system events.
+
+Example:
+
+```
+EventCreated
+
+        ↓
+
+Entity Worker
+
+        ↓
+
+Fact Worker
+
+        ↓
+
+Embedding Worker
+```
+
+---
+
+## Principle 3
+
+## Immutable History
+
+Workers never rewrite history.
+
+They create:
+
+* new versions,
+* corrections,
+* derived knowledge.
+
+---
+
+## Principle 4
+
+## Explainable Processing
+
+Every worker action creates provenance.
+
+Example:
+
+```
+Fact Created
+
+because:
+
+Conversation #123
+
+processed by:
+
+Fact Extraction Worker
+
+model:
+
+GPT-X
+
+confidence:
+
+0.91
+```
+
+---
+
+## Principle 5
+
+## Autonomous Optimization
+
+Workers continuously improve:
+
+* accuracy,
+* cost,
+* speed,
+* reliability.
+
+---
+
+# Chapter 3
+
+# Worker Architecture
+
+The MOS Worker System consists of:
+
+```
+                MOS Event Bus
+
+                      |
+                      |
+
+ ┌────────────┬─────────────┬─────────────┐
+
+ ▼            ▼             ▼
+
+Memory      Knowledge     Optimization
+
+Workers     Workers       Workers
+
+
+ ▼            ▼             ▼
+
+
+Persistent Cognitive Substrate
+
+```
+
+---
+
+# Chapter 4
+
+# Worker Lifecycle
+
+Every worker follows:
+
+```
+Initialize
+
+↓
+
+Register
+
+↓
+
+Listen
+
+↓
+
+Process
+
+↓
+
+Validate
+
+↓
+
+Commit
+
+↓
+
+Report
+
+↓
+
+Sleep
+```
+
+---
+
+# Chapter 5
+
+# Worker Contract
+
+Every worker SHALL expose:
+
+```
+Worker Identity
+
+Capabilities
+
+Input Events
+
+Output Events
+
+Dependencies
+
+Version
+
+Health Status
+```
+
+Example:
+
+```json
+{
+"name":"entity-extractor",
+
+"version":"0.1",
+
+"inputs":[
+"event.created"
+],
+
+"outputs":[
+"entity.created"
+]
+}
+```
+
+---
+
+# Chapter 6
+
+# Event Model
+
+Workers communicate through MOS events.
+
+Common events:
+
+```
+object.created
+
+object.updated
+
+event.received
+
+fact.created
+
+fact.updated
+
+embedding.created
+
+conflict.detected
+
+task.completed
+
+failure.detected
+```
+
+---
+
+# Chapter 7
+
+# Core Worker Categories
+
+MOS defines worker classes.
+
+```
+Memory Formation
+
+Knowledge Processing
+
+Retrieval Optimization
+
+Planning
+
+Execution
+
+Reflection
+
+Governance
+
+System Optimization
+```
+
+---
+
+# Chapter 8
+
+# Memory Formation Workers
+
+These workers convert experiences into memories.
+
+---
+
+# 8.1 Event Processing Worker
+
+Purpose:
+
+Consumes raw events.
+
+Input:
+
+```
+Raw Event
+```
+
+Output:
+
+```
+Observation Object
+```
+
+Responsibilities:
+
+* validate event,
+* classify event type,
+* attach metadata,
+* create provenance.
+
+---
+
+# 8.2 Entity Extraction Worker
+
+Purpose:
+
+Discover entities.
+
+Example:
+
+Input:
+
+```
+I installed PostgreSQL on Ubuntu
+```
+
+Output:
+
+Entities:
+
+```
+PostgreSQL
+
+Ubuntu
+```
+
+Creates:
+
+```
+EntityCreated
+```
+
+---
+
+# 8.3 Fact Extraction Worker
+
+Purpose:
+
+Extract semantic knowledge.
+
+Input:
+
+```
+User prefers Rust
+```
+
+Output:
+
+```
+(User)
+
+LIKES
+
+(Rust)
+```
+
+Creates:
+
+```
+FactCreated
+```
+
+---
+
+# 8.4 Relationship Resolution Worker
+
+Purpose:
+
+Connect knowledge.
+
+Responsibilities:
+
+* merge duplicate entities,
+* discover relationships,
+* update graph.
+
+---
+
+# Chapter 9
+
+# Knowledge Maintenance Workers
+
+These workers maintain semantic integrity.
+
+---
+
+# 9.1 Deduplication Worker
+
+Detects:
+
+* duplicate entities,
+* duplicate facts,
+* duplicate documents.
+
+Example:
+
+```
+OpenAI
+
+Open AI
+
+OpenAI Inc.
+```
+
+may represent one entity.
+
+---
+
+# 9.2 Contradiction Detection Worker
+
+Detects conflicting knowledge.
+
+Example:
+
+```
+User lives in Stockholm
+
+User lives in Gothenburg
+```
+
+Creates:
+
+```
+Conflict Object
+```
+
+Never silently deletes information.
+
+---
+
+# 9.3 Confidence Calibration Worker
+
+Adjusts confidence.
+
+Factors:
+
+* source reliability,
+* usage success,
+* validation,
+* age.
+
+---
+
+# Chapter 10
+
+# Memory Consolidation Workers
+
+Inspired by biological memory.
+
+---
+
+# 10.1 Memory Compression Worker
+
+Purpose:
+
+Reduce unnecessary complexity.
+
+Example:
+
+Many events:
+
+```
+50 conversations
+
+↓
+
+1 episode summary
+```
+
+---
+
+# 10.2 Semantic Consolidation Worker
+
+Transforms:
+
+```
+Episodes
+
+↓
+
+Facts
+
+↓
+
+Skills
+
+↓
+
+General knowledge
+```
+
+---
+
+# 10.3 Forgetting Worker
+
+Purpose:
+
+Reduce inactive memory.
+
+Important:
+
+Forget means:
+
+```
+Lower accessibility
+
+NOT
+
+Delete existence
+```
+
+---
+
+# Chapter 11
+
+# Embedding Workers
+
+Responsible for semantic indexing.
+
+Pipeline:
+
+```
+Object Created
+
+↓
+
+Embedding Generation
+
+↓
+
+Vector Storage
+
+↓
+
+Index Update
+```
+
+Responsibilities:
+
+* generate embeddings,
+* update versions,
+* detect outdated vectors.
+
+---
+
+# Chapter 12
+
+# Retrieval Optimization Workers
+
+Improve memory access.
+
+---
+
+## Query Analysis Worker
+
+Learns:
+
+* common questions,
+* retrieval patterns.
+
+---
+
+## Ranking Optimization Worker
+
+Improves:
+
+* relevance,
+* confidence weighting,
+* context selection.
+
+---
+
+## Cache Generation Worker
+
+Creates:
+
+* semantic cache,
+* frequently used contexts.
+
+---
+
+# Chapter 13
+
+# Planning Workers
+
+Maintain long-running cognition.
+
+Workers:
+
+```
+Goal Manager
+
+Task Scheduler
+
+Dependency Resolver
+
+Progress Evaluator
+```
+
+---
+
+# Chapter 14
+
+# Execution Workers
+
+Track actions.
+
+Responsibilities:
+
+* monitor tools,
+* collect results,
+* evaluate success,
+* learn from failures.
+
+---
+
+# Chapter 15
+
+# Reflection Workers
+
+Reflection is the self-improvement layer.
+
+Pipeline:
+
+```
+Experience
+
+↓
+
+Analysis
+
+↓
+
+Lesson
+
+↓
+
+Knowledge Update
+
+↓
+
+Strategy Improvement
+```
+
+Reflection workers create:
+
+* new skills,
+* better procedures,
+* corrected beliefs.
+
+---
+
+# Chapter 16
+
+# Governance Workers
+
+Maintain safety and control.
+
+Responsibilities:
+
+* permission checking,
+* policy validation,
+* audit generation.
+
+---
+
+# Chapter 17
+
+# Optimization Workers
+
+These workers improve MOS itself.
+
+Monitor:
+
+* token usage,
+* latency,
+* storage cost,
+* worker performance.
+
+Actions:
+
+* change priorities,
+* optimize indexes,
+* adjust caching,
+* recommend architecture changes.
+
+---
+
+# Chapter 18
+
+# Worker Scheduling
+
+Workers may operate using:
+
+## Event Driven
+
+Immediate response.
+
+Example:
+
+Entity extraction.
+
+---
+
+## Scheduled
+
+Periodic processing.
+
+Example:
+
+Memory consolidation.
+
+---
+
+## Adaptive
+
+Triggered by system conditions.
+
+Example:
+
+High storage usage → compression.
+
+---
+
+# Chapter 19
+
+# Worker Communication
+
+Workers SHALL communicate using MOS events.
+
+Example:
+
+```
+Event Worker
+
+↓
+
+event.created
+
+
+Entity Worker
+
+↓
+
+entity.created
+
+
+Fact Worker
+
+↓
+
+fact.created
+
+
+Embedding Worker
+
+↓
+
+embedding.created
+```
+
+---
+
+# Chapter 20
+
+# Worker Reliability
+
+Workers SHALL support:
+
+* retries,
+* idempotency,
+* failure recovery,
+* health monitoring.
+
+---
+
+# Chapter 21
+
+# Worker Metrics
+
+Every worker reports:
+
+```
+Processing time
+
+Success rate
+
+Failure rate
+
+Cost
+
+Memory impact
+
+Confidence impact
+```
+
+---
+
+# Chapter 22
+
+# Worker Security
+
+Workers operate with declared permissions.
+
+Example:
+
+```
+Embedding Worker
+
+READ:
+
+Knowledge Objects
+
+
+WRITE:
+
+Embeddings Only
+```
+
+Workers SHALL not have unrestricted memory access.
+
+---
+
+# Chapter 23
+
+# Reference Worker Deployment
+
+Example:
+
+```
+MOS
+
+|
+
+Event Bus
+
+|
+
+Workers
+
+├── Entity Worker
+├── Fact Worker
+├── Graph Worker
+├── Embedding Worker
+├── Reflection Worker
+├── Planner Worker
+├── Optimization Worker
+
+|
+
+Storage Layer
+```
+
+---
+
+# Chapter 24
+
+# Compliance
+
+A MOS Worker implementation complies if it provides:
+
+* event-driven processing,
+* worker contracts,
+* provenance,
+* idempotency,
+* cognitive maintenance,
+* self-improvement mechanisms.
+
+---
+
+# Worker Specification Result
+
+The MOS architecture now has a living cognitive layer:
+
+```
+Storage
+
+↓
+
+API
+
+↓
+
+Workers
+
+↓
+
+Continuous Learning
+
+↓
+
+Improved Cognition
+```
+
+MOS is no longer a passive memory system.
+
+It is an active cognitive infrastructure.
+
+---
+
+# New architectural concept introduced
+
+## Cognitive Kernel Workers
+
+The Worker System effectively becomes the MOS equivalent of an operating system kernel.
+
+Traditional OS:
+
+```
+Scheduler
+Memory Manager
+File System
+Drivers
+```
+
+MOS:
+
+```
+Memory Formation
+Knowledge Manager
+Reflection Engine
+Retrieval Optimizer
+Learning System
+Governance Manager
+```
+
+The next logical specification should be:
+
+# MOS Retrieval Engine Specification v0.1
+
+Because now we have:
+
+* storage,
+* API,
+* workers.
+
+The next question is:
+
+> How does MOS decide what memories to activate when an agent needs information?
+
+That is the equivalent of the brain's attention mechanism.

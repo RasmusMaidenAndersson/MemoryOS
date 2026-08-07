@@ -1,0 +1,631 @@
+Excellent. Part V is actually one of the most important parts of the entire PCS specification.
+
+Up until now, we have designed how cognition exists.
+
+But a real cognitive system cannot only store and retrieve knowledge.
+
+It must also be:
+
+trustworthy,
+recoverable,
+auditable,
+secure,
+resilient against failures,
+able to explain itself.
+
+A human brain has mechanisms for this too:
+
+memory consolidation prevents corruption,
+forgetting prevents overload,
+verification prevents false beliefs,
+sleep consolidates and repairs memory,
+attention prevents irrelevant information from dominating cognition.
+
+For MOS, these become engineering guarantees.
+
+So Part V defines the reliability layer of persistent cognition.
+
+MOS Persistent Cognitive Substrate (PCS)
+Specification v0.1
+Part V — Reliability, Integrity and Governance
+Abstract
+
+The Reliability and Governance Specification defines the mechanisms required to maintain correctness, durability, trust, and operational safety within the Persistent Cognitive Substrate.
+
+This specification establishes how MOS protects cognitive information against:
+
+corruption,
+conflicting updates,
+unauthorized modification,
+storage failures,
+system failures,
+distributed inconsistencies.
+
+The goal is not merely database reliability.
+
+The goal is:
+
+Preserving trustworthy cognition over time.
+
+Chapter 1
+Purpose
+
+Cognition requires trust.
+
+An intelligent system cannot safely reason over information if it cannot determine:
+
+where information came from,
+whether it changed,
+whether it is reliable,
+whether it is authorized,
+whether it conflicts with other knowledge.
+
+Therefore reliability is a core cognitive capability.
+
+Chapter 2
+Reliability Principles
+
+The PCS follows these principles.
+
+Principle 1
+Never lose provenance
+
+A memory without origin is not trustworthy.
+
+Every persistent object SHALL maintain:
+
+source,
+creator,
+transformation history,
+timestamps,
+confidence changes.
+Principle 2
+History before correction
+
+Incorrect information SHALL not simply disappear.
+
+The system SHALL preserve:
+
+previous versions,
+correction events,
+contradiction records.
+
+Knowledge evolves through history.
+
+Principle 3
+Fail safely
+
+When uncertainty exists, MOS SHALL prefer:
+
+reduced confidence,
+isolation,
+human review,
+explicit conflict.
+
+It SHALL NOT silently overwrite knowledge.
+
+Principle 4
+Trust is earned
+
+Information quality SHALL be measurable.
+
+Chapter 3
+Data Integrity Model
+
+The PCS defines three integrity levels.
+
+Level 1 — Physical Integrity
+
+Guarantees:
+
+data is not corrupted,
+storage is consistent,
+checksums match.
+
+Examples:
+
+disk failure detection,
+corruption checks,
+replication validation.
+Level 2 — Logical Integrity
+
+Guarantees:
+
+references remain valid,
+versions are consistent,
+relationships are preserved.
+Level 3 — Cognitive Integrity
+
+Guarantees:
+
+knowledge remains explainable,
+confidence remains accurate,
+contradictions are detectable.
+Chapter 4
+Provenance Integrity
+
+Every Cognitive Object SHALL contain provenance metadata.
+
+Minimum:
+
+Origin
+
+Creator
+
+Source Object
+
+Creation Time
+
+Transformation Chain
+
+Confidence History
+
+Validation History
+
+Example:
+
+User Statement
+
+      ↓
+
+Fact Extraction Model
+
+      ↓
+
+Fact Object
+
+      ↓
+
+Confidence Update
+
+      ↓
+
+Reflection Process
+
+Every step remains traceable.
+
+Chapter 5
+Version Integrity
+
+MOS uses immutable version chains.
+
+Example:
+
+Fact:
+
+User owns Laptop
+
+
+Version 1
+
+Confidence:
+0.80
+
+
+↓
+
+Version 2
+
+Confidence:
+0.95
+
+
+↓
+
+Version 3
+
+Superseded
+
+No version is destroyed.
+
+Chapter 6
+Contradiction Management
+
+Contradictions are expected in cognitive systems.
+
+They are not storage failures.
+
+Example:
+
+Fact A:
+
+User lives in Stockholm
+
+Fact B:
+
+User moved to Gothenburg
+
+MOS SHALL create:
+
+Conflict Object
+
+Fact A
+
+Fact B
+
+Detection Time
+
+Evidence
+
+Resolution Status
+
+Possible states:
+
+Detected
+
+Under Review
+
+Resolved
+
+Accepted Multiple Truths
+
+Invalidated
+Chapter 7
+Consistency Model
+
+MOS defines multiple consistency models.
+
+Strong Consistency
+
+Used for:
+
+identity,
+permissions,
+transactions,
+security.
+Eventual Consistency
+
+Used for:
+
+embeddings,
+indexes,
+summaries,
+caches.
+Cognitive Consistency
+
+Used for:
+
+beliefs,
+facts,
+reasoning.
+
+Requires:
+
+provenance,
+confidence,
+contradiction handling.
+Chapter 8
+Transaction Model
+
+Transactions SHALL preserve cognitive coherence.
+
+A transaction MAY include:
+
+Create Entity
+
++
+
+Create Facts
+
++
+
+Create Relationships
+
++
+
+Generate Embeddings
+
++
+
+Update Indexes
+
+The system SHALL distinguish:
+
+Primary transaction
+
+Creates authoritative knowledge.
+
+Secondary transaction
+
+Updates derived representations.
+
+Chapter 9
+Recovery Architecture
+
+MOS recovery operates at multiple levels.
+
+Object Recovery
+
+Restore one Cognitive Object.
+
+Domain Recovery
+
+Restore:
+
+Knowledge Domain,
+Graph Domain,
+Planning Domain.
+Complete Cognitive Recovery
+
+Restore the entire cognitive state.
+
+Including:
+
+memory,
+relationships,
+versions,
+provenance.
+Chapter 10
+Backup Model
+
+Backups SHALL preserve cognitive meaning.
+
+A valid backup contains:
+
+Objects
+
+Versions
+
+Relationships
+
+Provenance
+
+Policies
+
+Indexes
+
+Metadata
+
+A backup containing only raw tables is insufficient.
+
+Chapter 11
+Disaster Recovery
+
+MOS defines recovery objectives.
+
+Recovery Point Objective (RPO)
+
+How much cognitive history can be lost.
+
+Recovery Time Objective (RTO)
+
+How quickly cognition can be restored.
+
+Cognitive Recovery Objective (CRO)
+
+New MOS concept.
+
+How much reasoning capability can be restored.
+
+Example:
+
+A database may recover.
+
+But if:
+
+embeddings are missing,
+graphs are missing,
+procedures are missing,
+
+the cognitive system is impaired.
+
+Therefore MOS measures cognitive recovery.
+
+Chapter 12
+Security Model
+
+Security SHALL protect cognition.
+
+The PCS defines:
+
+Authentication
+
+Who is accessing memory?
+
+Authorization
+
+What may they access?
+
+Integrity
+
+Who may modify knowledge?
+
+Confidentiality
+
+Who may observe knowledge?
+
+Chapter 13
+Cognitive Access Control
+
+Traditional databases use row permissions.
+
+MOS requires cognitive permissions.
+
+Examples:
+
+Allow:
+
+Agent A
+
+Read:
+
+Market Data
+
+
+Deny:
+
+Agent A
+
+Read:
+
+Private User Information
+
+Permissions SHALL apply to:
+
+objects,
+relationships,
+contexts,
+domains.
+Chapter 14
+Encryption
+
+MOS SHALL support encryption for:
+
+stored objects,
+backups,
+communication,
+sensitive metadata.
+
+Encryption policy SHALL be configurable.
+
+Chapter 15
+Audit System
+
+Every important operation SHALL generate an audit event.
+
+Examples:
+
+Memory Created
+
+Memory Modified
+
+Fact Superseded
+
+Permission Changed
+
+Agent Accessed Data
+
+Policy Updated
+
+Audit events are immutable.
+
+Chapter 16
+Governance Model
+
+Governance defines rules controlling cognition.
+
+Governance Objects include:
+
+policies,
+constraints,
+permissions,
+approvals.
+
+Examples:
+
+Never expose private data
+
+Require approval before external action
+
+Do not execute destructive operations automatically
+
+Governance participates in reasoning.
+
+Chapter 17
+Trust Model
+
+Every Cognitive Object MAY contain trust metrics.
+
+Example:
+
+Confidence
+
+Source Reliability
+
+Validation Count
+
+Usage Success Rate
+
+Historical Accuracy
+
+Trust evolves over time.
+
+Chapter 18
+Self-Integrity Checks
+
+MOS SHOULD periodically perform:
+
+orphan detection,
+broken relationship detection,
+duplicate detection,
+contradiction analysis,
+provenance validation,
+confidence recalculation.
+
+These checks are analogous to biological maintenance.
+
+Chapter 19
+Compliance
+
+A PCS implementation complies with Part V if it provides:
+
+provenance integrity,
+version integrity,
+contradiction handling,
+recovery,
+backup,
+security,
+governance,
+auditing,
+trust management.
+Part V Result
+
+The PCS now has reliability guarantees.
+
+The complete architecture becomes:
+
+              Cognitive Object
+
+                     │
+
+        Persistent Cognitive Substrate
+
+                     │
+
+     ┌───────────────┼───────────────┐
+
+     ▼               ▼               ▼
+
+ Logical       Physical        Reliability
+
+ Model         Model           Governance
+
+
+                     │
+
+                     ▼
+
+              Trustworthy Cognition
+Important new concept introduced: Cognitive Recovery Objective (CRO)
+
+I think this is a genuinely important MOS-specific idea.
+
+Traditional systems ask:
+
+"Did the database recover?"
+
+MOS asks:
+
+"Did the intelligence recover?"
+
+A recovered system should not only have files and tables.
+
+It should recover:
+
+knowledge,
+reasoning capability,
+learned skills,
+historical understanding,
+decision context.
+
+This gives MOS a new operational metric:
+
+Cognitive Availability
+
+Not:
+
+"Is the server online?"
+
+But:
+
+"Can the system still think correctly?"

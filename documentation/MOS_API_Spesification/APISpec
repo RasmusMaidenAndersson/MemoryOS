@@ -1,0 +1,700 @@
+Memory Operating System (MOS)
+API Specification v0.1
+Abstract
+
+The MOS API Specification defines the standard interface through which agents, applications, workers, and external systems interact with the Memory Operating System.
+
+The API provides access to:
+
+memory creation,
+memory retrieval,
+learning,
+reasoning context,
+planning,
+reflection,
+knowledge management,
+execution tracking,
+cognitive state.
+
+The MOS API abstracts storage implementation details and provides a stable cognitive interface independent of backend technology.
+
+Chapter 1
+API Philosophy
+
+MOS APIs are not database APIs.
+
+They do not expose:
+
+tables,
+rows,
+SQL queries,
+storage locations.
+
+Instead they expose cognitive operations.
+
+The API operates on concepts:
+
+remember,
+recall,
+learn,
+reflect,
+plan,
+reason,
+activate,
+evaluate.
+Chapter 2
+API Architecture
+
+The MOS API sits between cognition and storage.
+
+              Agent
+
+                |
+                ▼
+
+          MOS API Layer
+
+                |
+
+ ┌──────────────┼──────────────┐
+
+ ▼              ▼              ▼
+
+Memory       Planning      Execution
+
+API          API           API
+
+
+                |
+
+                ▼
+
+       Persistent Cognitive Substrate
+
+                |
+
+                ▼
+
+          Storage Backend
+Chapter 3
+API Design Principles
+Principle 1
+Intent over implementation
+
+The caller describes what it needs.
+
+MOS determines how to satisfy it.
+
+Example:
+
+Bad:
+
+SELECT *
+FROM knowledge.facts
+WHERE subject_id='123'
+
+Good:
+
+{
+ "operation":"recall",
+ "concept":"database preferences"
+}
+Principle 2
+Provenance by default
+
+Every API response SHALL include provenance metadata.
+
+Principle 3
+Explainability first
+
+Every cognitive operation SHOULD be explainable.
+
+Principle 4
+Memory is active
+
+The API supports:
+
+retrieval,
+activation,
+learning,
+evolution.
+Chapter 4
+API Domains
+
+MOS API is divided into domains:
+
+api/
+
+├── memory
+├── knowledge
+├── context
+├── graph
+├── planning
+├── execution
+├── reflection
+├── learning
+├── identity
+├── governance
+├── telemetry
+└── system
+Chapter 5
+Authentication
+
+Every request contains:
+
+actor_id
+
+agent_id
+
+session_id
+
+authorization_context
+
+purpose
+
+Example:
+
+{
+ "agent_id":"research-agent",
+ "purpose":"market-analysis"
+}
+Chapter 6
+Core Memory API
+
+The fundamental operations:
+
+remember()
+
+recall()
+
+forget()
+
+update()
+
+consolidate()
+remember()
+
+Creates new cognitive information.
+
+Example:
+
+POST /memory/remember
+
+Request:
+
+{
+"type":"fact",
+
+"content":{
+ "subject":"User",
+ "predicate":"likes",
+ "object":"Rust"
+},
+
+"source":{
+ "type":"conversation",
+ "id":"session-123"
+},
+
+"confidence":0.95
+}
+
+Response:
+
+{
+"memory_id":"uuid",
+
+"status":"created",
+
+"confidence":0.95,
+
+"provenance":"uuid"
+}
+recall()
+
+Retrieves relevant cognition.
+
+Example:
+
+POST /memory/recall
+
+Request:
+
+{
+"query":
+"How does the user prefer coding?",
+
+"context":{
+ "task":"software development"
+},
+
+"limit":20
+}
+
+Response:
+
+{
+"memories":[
+ {
+  "content":"Prefers Rust",
+  "confidence":0.94,
+  "source":"conversation"
+ }
+]
+}
+Chapter 7
+Learning API
+
+Learning converts experiences into knowledge.
+
+Operations:
+
+learn()
+
+extract()
+
+consolidate()
+
+reinforce()
+learn()
+
+Example:
+
+POST /learning/learn
+
+Input:
+
+{
+"experience_id":"episode-123",
+
+"objective":
+"extract reusable knowledge"
+}
+
+Output:
+
+{
+"facts_created":5,
+
+"skills_created":1,
+
+"confidence_updates":12
+}
+Chapter 8
+Context API
+
+Contexts represent cognitive working areas.
+
+Operations:
+
+create_context()
+
+activate_context()
+
+close_context()
+
+archive_context()
+
+Example:
+
+POST /context/activate
+
+Request:
+
+{
+"context_id":
+"project-ai-memory"
+}
+
+Response:
+
+{
+"active_objects":120,
+
+"loaded_memories":35,
+
+"token_budget":8000
+}
+Chapter 9
+Retrieval API
+
+MOS uses hybrid retrieval.
+
+Pipeline:
+
+Query
+
+↓
+
+Context Analysis
+
+↓
+
+Graph Expansion
+
+↓
+
+Semantic Search
+
+↓
+
+Ranking
+
+↓
+
+Confidence Filtering
+
+↓
+
+Response
+
+API:
+
+POST /retrieval/search
+
+Example:
+
+{
+"query":
+"previous database design decisions",
+
+"strategies":[
+ "semantic",
+ "graph",
+ "temporal"
+]
+}
+Chapter 10
+Knowledge API
+
+Direct semantic operations.
+
+Functions:
+
+create_entity()
+
+create_fact()
+
+query_fact()
+
+merge_entities()
+
+resolve_conflict()
+
+Example:
+
+POST /knowledge/fact
+{
+"subject":"Project X",
+
+"relation":"uses",
+
+"object":"PostgreSQL"
+}
+Chapter 11
+Graph API
+
+Operations:
+
+neighbors()
+
+traverse()
+
+find_path()
+
+explain_relationship()
+
+Example:
+
+GET /graph/path
+
+Question:
+
+Why does Agent X know PostgreSQL?
+
+Response:
+
+User statement
+
+↓
+
+Project requirement
+
+↓
+
+Technical decision
+
+↓
+
+Stored fact
+Chapter 12
+Planning API
+
+Planning becomes a first-class subsystem.
+
+Operations:
+
+create_goal()
+
+create_plan()
+
+add_task()
+
+update_progress()
+
+evaluate_plan()
+
+Example:
+
+POST /planning/create
+{
+"goal":
+"Build MOS database",
+
+"constraints":[
+"time",
+"resources"
+]
+}
+Chapter 13
+Execution API
+
+Tracks actions.
+
+Operations:
+
+start_execution()
+
+record_action()
+
+record_result()
+
+evaluate_execution()
+
+Example:
+
+{
+"tool":"python",
+
+"action":"train_model",
+
+"result":"success",
+
+"cost":0.32
+}
+Chapter 14
+Reflection API
+
+Reflection enables improvement.
+
+Operations:
+
+reflect()
+
+analyze_failure()
+
+extract_skill()
+
+improve_strategy()
+
+Example:
+
+POST /reflection/run
+
+Response:
+
+{
+"lessons_created":4,
+
+"skills_updated":2
+}
+Chapter 15
+Governance API
+
+Controls cognitive authority.
+
+Operations:
+
+check_permission()
+
+request_approval()
+
+audit_action()
+
+Example:
+
+Before external action:
+
+Can this agent send email?
+
+MOS decides.
+
+Chapter 16
+Explainability API
+
+Every important decision supports:
+
+explain()
+
+Example:
+
+GET /explain/fact/{id}
+
+Returns:
+
+Origin
+
+Evidence
+
+Transformations
+
+Confidence history
+
+Related decisions
+Chapter 17
+Streaming API
+
+MOS supports event streams.
+
+Examples:
+
+memory.created
+
+fact.updated
+
+plan.completed
+
+reflection.finished
+
+worker.failed
+
+Compatible with:
+
+Kafka
+NATS
+Redis Streams
+Chapter 18
+SDK Design
+
+Reference SDK:
+
+Python:
+
+mos.remember()
+
+mos.recall()
+
+mos.plan()
+
+mos.reflect()
+
+TypeScript:
+
+await mos.memory.recall()
+
+await mos.learning.learn()
+
+await mos.context.activate()
+Chapter 19
+Worker API
+
+Workers communicate through contracts.
+
+Example:
+
+Entity Worker:
+
+Input:
+
+EventCreated
+
+Output:
+
+EntityCreated
+
+Embedding Worker:
+
+Input:
+
+ObjectCreated
+
+Output:
+
+EmbeddingCreated
+Chapter 20
+API Guarantees
+
+MOS API guarantees:
+
+stable identity,
+provenance,
+explainability,
+storage independence,
+version compatibility,
+permission enforcement.
+Chapter 21
+Compliance
+
+An implementation complies with MOS API v0.1 if it provides:
+
+memory operations,
+retrieval,
+learning,
+context management,
+planning,
+reflection,
+execution tracking,
+governance,
+explainability.
+MOS API v0.1 Result
+
+The architecture is now complete:
+
+                 Agents
+
+                    |
+                    ▼
+
+              MOS API v0.1
+
+                    |
+
+        Persistent Cognitive Substrate
+
+                    |
+
+        PostgreSQL Reference Backend
+
+                    |
+
+             Physical Storage
+Important architectural insight from this specification
+
+The API reveals something fundamental:
+
+MOS is not a "memory database".
+
+It is closer to a cognitive operating system kernel.
+
+The API is analogous to system calls:
+
+Operating System:
+
+open()
+read()
+write()
+fork()
+execute()
+
+MOS:
+
+remember()
+recall()
+learn()
+reflect()
+plan()
+execute()
+
+Applications do not manage memory directly.
+
+They request cognitive services.

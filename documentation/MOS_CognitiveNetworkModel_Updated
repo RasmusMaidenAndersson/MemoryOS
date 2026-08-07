@@ -1,0 +1,38 @@
+                 Cognitive Network
+
+
+        Human
+          │
+          │
+          ▼
+
+      Identity Layer
+
+          │
+
+ ┌────────┼────────┐
+
+ ▼        ▼        ▼
+
+Agent A  Agent B  Device
+
+
+          │
+
+          ▼
+
+     Trust Model
+
+
+          │
+
+          ▼
+
+ Communication
+
+
+          │
+
+          ▼
+
+ Shared Cognition

@@ -1,0 +1,353 @@
+Memory is no longer passive
+
+Traditional systems:
+
+Store
+
+↓
+
+Retrieve
+
+↓
+
+LLM
+
+MOS:
+
+Observe
+
+↓
+
+Activate Memory
+
+↓
+
+Reason
+
+↓
+
+Decide
+
+↓
+
+Act
+
+↓
+
+Evaluate
+
+↓
+
+Reflect
+
+↓
+
+Consolidate
+
+↓
+
+Reorganize Memory
+
+Memory becomes an active participant.
+
+Memory Spaces
+
+I would formally introduce the following.
+
+Working Memory
+
+Current reasoning state.
+
+Very small.
+
+Highly dynamic.
+
+Milliseconds.
+
+Attention Space
+
+Subset of Working Memory.
+
+Contains only the currently relevant cognitive elements.
+
+Think:
+
+CPU registers.
+
+Active Context
+
+Everything immediately required for reasoning.
+
+Think:
+
+RAM.
+
+Episodic Memory
+
+Experiences.
+
+Ordered.
+
+Historical.
+
+Immutable.
+
+Semantic Memory
+
+Knowledge.
+
+Facts.
+
+Relationships.
+
+Concepts.
+
+Ontology.
+
+Procedural Memory
+
+How to perform tasks.
+
+Skills.
+
+Strategies.
+
+Playbooks.
+
+Workflows.
+
+Reflection Memory
+
+Lessons learned.
+
+Failures.
+
+Successes.
+
+Evaluations.
+
+Meta-learning.
+
+World Memory
+
+State of reality.
+
+Environment.
+
+Objects.
+
+Processes.
+
+Digital twins.
+
+Predictive Memory
+
+Future expectations.
+
+Forecasts.
+
+Simulations.
+
+Hypotheses.
+
+Identity Memory
+
+Actors.
+
+Organizations.
+
+Devices.
+
+Trust.
+
+Authority.
+
+Governance Memory
+
+Policies.
+
+Rules.
+
+Permissions.
+
+Compliance.
+
+Resource Memory
+
+Costs.
+
+Budgets.
+
+Resource history.
+
+Optimization.
+
+Communication Memory
+
+Interactions.
+
+Delegations.
+
+Synchronization history.
+
+Notice something beautiful.
+
+Every RFC we've written now naturally belongs to one or more Memory Spaces.
+
+That means the RFCs are converging into a coherent architecture rather than remaining isolated concepts.
+
+Another improvement
+
+I think we should formally introduce Memory Activation.
+
+One weakness of almost every AI memory framework today is that retrieval is binary:
+
+Search
+
+↓
+
+Results
+
+Humans don't retrieve memories that way.
+
+Instead:
+
+Stimulus
+
+↓
+
+Activation spreads
+
+↓
+
+Related concepts activate
+
+↓
+
+Attention focuses
+
+↓
+
+Reasoning begins
+
+MOS should model this.
+
+For example:
+
+Question:
+
+"How should I deploy PostgreSQL?"
+
+This shouldn't only retrieve "PostgreSQL."
+
+It should activate:
+
+Docker
+Kubernetes
+Previous deployments
+Backup procedures
+Security policies
+Cost constraints
+Resource history
+Similar failures
+Learned optimizations
+
+This is activation, not retrieval.
+
+This single concept could become one of the distinguishing features of MOS.
+
+Memory Activation Graph
+Question
+
+      │
+
+      ▼
+
+Activation Engine
+
+      │
+
+ ┌────┼────┐
+
+ ▼    ▼    ▼
+
+Facts Episodes Skills
+
+ │      │      │
+
+ └────┬─┴──────┘
+
+      ▼
+
+Attention Space
+
+      ▼
+
+Reasoning
+
+      ▼
+
+Decision
+
+Notice:
+
+The LLM doesn't decide what memory to use.
+
+MOS does.
+
+That is a massive architectural improvement.
+
+Memory Consolidation
+
+Another improvement.
+
+Humans don't permanently store everything.
+
+They consolidate.
+
+MOS should too.
+
+Working Memory
+
+↓
+
+Evaluation
+
+↓
+
+Reflection
+
+↓
+
+Consolidation
+
+↓
+
+Semantic Memory
+
+↓
+
+Archive
+
+This prevents:
+
+duplicate facts,
+redundant embeddings,
+memory explosion,
+contradictory knowledge.
+Memory Decay
+
+Not deletion.
+
+Activation changes over time.
+
+Every Cognitive Element could have:
+
+activation score,
+importance score,
+recall frequency,
+reinforcement score,
+decay rate,
+consolidation state.
+
+Exactly like a biological memory system.

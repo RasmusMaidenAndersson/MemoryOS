@@ -1,0 +1,527 @@
+Memory Operating System (MOS)
+Core Specification
+RFC-0001
+Core Principles
+
+RFC Number
+
+RFC-0001
+
+Title
+
+Core Principles
+
+Status
+
+Draft
+
+Version
+
+0.1.0
+
+Category
+
+Normative
+
+Dependencies
+
+RFC-0000 Introduction
+Abstract
+
+This document defines the fundamental principles governing every compliant Memory Operating System (MOS).
+
+These principles establish the canonical representation of cognition, define the universal cognitive primitives, specify invariant behaviors, and describe the semantics that all compliant implementations SHALL preserve.
+
+No implementation detail—including databases, graph engines, APIs, programming languages, embedding models, or language models—may violate these principles.
+
+1. Purpose
+
+The purpose of this document is to establish the immutable foundations upon which the Memory Operating System is built.
+
+These principles define what cognition means inside MOS.
+
+Future specifications MAY extend the architecture but SHALL NOT contradict the principles defined in this document.
+
+2. Scope
+
+This RFC specifies:
+
+The Cognitive Kernel
+The Directed Cognitive Graph
+Cognitive Elements
+Identity
+Provenance
+Versioning
+Confidence
+Cognitive State
+Cognitive Views
+Cognitive Dynamics
+
+This RFC intentionally does not specify:
+
+Storage
+APIs
+Network protocols
+SQL schemas
+Serialization
+Worker implementations
+
+Those belong to companion specifications.
+
+3. The Cognitive Kernel
+
+MOS defines a minimal cognitive kernel.
+
+Every compliant implementation SHALL preserve this model.
+
+The kernel consists of exactly four concepts.
+
+Cognitive State Space
+
+↓
+
+Cognitive Elements
+
+↓
+
+Cognitive Dynamics
+
+↓
+
+Cognitive Views
+
+Everything else within MOS is derived from these four concepts.
+
+4. The Cognitive Axiom
+
+MOS defines one canonical representation of cognition.
+
+A Memory Operating System SHALL represent cognition as a Cognitive State Space composed of versioned Cognitive Elements connected by typed Cognitive Relationships and exposed through one or more Cognitive Views.
+
+This statement is the primary axiom of MOS.
+
+All subsequent specifications derive from it.
+
+5. Normative Axioms
+
+The following axioms SHALL hold for every compliant implementation.
+
+Axiom 1
+
+Everything is a Cognitive Element.
+
+No persistent cognitive information SHALL exist outside a Cognitive Element.
+
+Axiom 2
+
+Every Cognitive Element exists within the Cognitive State Space.
+
+No Cognitive Element SHALL exist independently.
+
+Axiom 3
+
+Every Cognitive Element possesses identity.
+
+Identity SHALL remain stable throughout its lifetime.
+
+Axiom 4
+
+Every Cognitive Element possesses provenance.
+
+Its origin SHALL always be recoverable.
+
+Axiom 5
+
+Every Cognitive Element is versioned.
+
+Historical versions SHALL remain accessible.
+
+Axiom 6
+
+Every Cognitive Element has temporal validity.
+
+Time SHALL be considered part of cognition.
+
+Axiom 7
+
+Every Cognitive Element may participate in multiple relationships.
+
+Relationships SHALL NOT be limited by object type.
+
+Axiom 8
+
+Every Cognitive Element is explainable.
+
+Its existence SHALL be justifiable using stored cognitive state.
+
+Axiom 9
+
+Knowledge SHALL emerge from evidence.
+
+Knowledge SHALL NOT appear without supporting evidence.
+
+Axiom 10
+
+Beliefs MAY conflict.
+
+MOS SHALL permit simultaneous competing beliefs.
+
+Axiom 11
+
+Confidence is independent of truth.
+
+Confidence SHALL express certainty rather than correctness.
+
+Axiom 12
+
+Cognition is continuously evolving.
+
+No cognitive state SHALL be considered permanently final.
+
+6. Cognitive State Space
+
+MOS represents cognition as a continuously evolving state space.
+
+The Cognitive State Space contains:
+
+Cognitive Elements
+Relationships
+Versions
+Temporal states
+Provenance chains
+Views
+
+The State Space is the canonical representation.
+
+Graphs, tables, indexes, caches, and prompts are derived representations.
+
+7. Cognitive Elements
+
+A Cognitive Element is the universal primitive of MOS.
+
+Every persistent cognitive artifact SHALL be represented as a Cognitive Element.
+
+Two categories exist.
+Cognitive Element
+
+├── Cognitive Object
+
+└── Cognitive Relationship
+
+No other primitive types exist.
+
+8. Cognitive Objects
+
+Cognitive Objects represent persistent cognitive artifacts.
+
+Examples include:
+
+Observation
+Entity
+Evidence
+Claim
+Belief
+Knowledge
+Goal
+Plan
+Task
+Procedure
+Skill
+Prediction
+Reflection
+Evaluation
+Action
+Execution
+Document
+Artifact
+Preference
+Policy
+
+Future specifications MAY define additional object types.
+
+9. Cognitive Relationships
+
+Relationships are Cognitive Elements.
+
+Relationships SHALL possess:
+
+Identity
+Version
+Provenance
+Confidence
+Metadata
+Temporal validity
+
+Relationships MAY themselves participate in additional relationships.
+
+Example:
+
+Evidence
+
+↓
+
+supports
+
+↓
+
+Claim
+
+↓
+
+strengthened_by
+
+↓
+
+Observation
+
+MOS therefore permits reasoning about relationships themselves.
+
+10. Cognitive Identity
+
+Identity is conceptual rather than implementation-specific.
+
+Each Cognitive Element SHALL expose:
+
+Stable Identity
+Current Version
+Historical Versions
+Lineage
+Aliases
+
+Identifiers such as UUIDs are implementation choices.
+
+Identity semantics remain implementation independent.
+
+11. Provenance
+
+Every Cognitive Element SHALL preserve complete provenance.
+
+Minimum provenance includes:
+
+Creator
+Source
+Timestamp
+Parent
+Derivation
+Producing worker
+Producing model
+Supporting evidence
+
+The provenance chain SHALL be reconstructable.
+
+12. Versioning
+
+Every mutable concept SHALL evolve through immutable versions.
+
+Previous versions SHALL remain accessible.
+
+Version lineage SHALL be explicit.
+
+Version graphs MAY branch.
+
+MOS therefore supports alternative histories when required.
+
+13. Confidence
+
+Confidence represents epistemic certainty.
+
+Confidence SHALL NOT represent truth.
+
+Confidence MAY evolve.
+
+Confidence SHALL remain historically traceable.
+
+Confidence SHALL preserve its derivation.
+
+14. Cognitive State
+
+Every Cognitive Element occupies a cognitive state.
+
+Recommended states include:
+
+Created
+
+Observed
+
+Validated
+
+Linked
+
+Referenced
+
+Strengthened
+
+Weakened
+
+Superseded
+
+Archived
+
+Implementations MAY define additional states provided semantic compatibility is maintained.
+
+15. Cognitive Dynamics
+
+MOS defines cognition as state transitions.
+
+Transitions SHALL preserve:
+
+Identity
+Provenance
+Version history
+
+Transitions SHALL never destroy historical cognition.
+
+16. Cognitive Views
+
+Working Memory
+
+Semantic Memory
+
+Planning Memory
+
+Reflection Memory
+
+Learning Memory
+
+Execution Memory
+
+Archive Memory
+
+are not separate storage systems.
+
+They are projections of the Cognitive State Space.
+
+Views SHALL NOT duplicate canonical cognition.
+
+Views MAY materialize optimized representations.
+
+17. Directed Cognitive Graph
+
+The Directed Cognitive Graph (DCG) is the canonical graph projection of the Cognitive State Space.
+
+The DCG consists of:
+
+Cognitive Elements
+Typed Cognitive Relationships
+Version chains
+Provenance links
+Temporal links
+
+The DCG is authoritative for traversal semantics.
+
+Alternative storage implementations SHALL preserve equivalent graph semantics.
+
+18. Attention
+
+MOS introduces Attention as a first-class cognitive mechanism.
+
+Attention determines which Cognitive Elements receive computational focus.
+
+Attention influences:
+
+Working Memory
+Retrieval
+Planning
+Reflection
+Consolidation
+Memory decay
+
+Attention SHALL be represented explicitly rather than implicitly.
+
+Future specifications define Attention semantics.
+
+19. Explainability
+
+Every Cognitive Element SHALL support explanation.
+
+An implementation SHALL reconstruct:
+
+Supporting observations
+Evidence
+Claims
+Beliefs
+Reasoning
+Decisions
+Relationships
+
+Explanation SHALL NOT require regenerting reasoning using external model.
+
+20. Separation of Concerns
+
+Observation
+
+Memory
+
+Reasoning
+
+Planning
+
+Execution
+
+Reflection
+
+Learning
+
+Retrieval
+
+Storage
+
+are distinct cognitive responsibilities.
+
+No component SHALL assume responsibilities belonging to another.
+
+21. Derived Principles
+
+The following principles emerge naturally from the axioms.
+
+Memory is append-only.
+Historical knowledge is never destroyed.
+Knowledge evolves continuously.
+Multiple perspectives may coexist.
+Every conclusion is traceable.
+Every belief is revisable.
+Retrieval operates over views rather than raw storage.
+Reasoning is reproducible.
+Reflection modifies cognition rather than history.
+Learning modifies future behavior without erasing the past.
+
+These principles are consequences of the axioms rather than independent requirements.
+
+22. Compliance
+
+An implementation MAY claim:
+
+MOS Core v0.1 Compliant
+
+only if every normative requirement contained within this RFC is satisfied.
+
+Appendix A — Architectural Summary
+
+At this point, I think the architecture has become remarkably clean. It can now be summarized in a single diagram:
+
+                    Reality
+                        │
+                        ▼
+              Cognitive State Space
+                        │
+        ┌───────────────┼────────────────┐
+        │               │                │
+        ▼               ▼                ▼
+Cognitive Objects   Cognitive      Cognitive
+                    Relationships      Views
+        │               │                │
+        └───────────────┼────────────────┘
+                        ▼
+          Directed Cognitive Graph (DCG)
+                        │
+        ┌───────────────┼────────────────────────┐
+        │               │                        │
+        ▼               ▼                        ▼
+ Working View     Planning View          Semantic View
+        │               │                        │
+        ├───────────────┼────────────────────────┤
+        ▼               ▼                        ▼
+ Reflection      Retrieval               Execution
+        │
+        ▼
+     Learning

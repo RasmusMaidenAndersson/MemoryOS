@@ -1,0 +1,915 @@
+# MOS Persistent Cognitive Substrate (PCS)
+
+# Specification v0.1
+
+# Part VI — PostgreSQL Reference Implementation
+
+---
+
+# Abstract
+
+This document defines the PostgreSQL reference implementation of the Memory Operating System Persistent Cognitive Substrate.
+
+The purpose of this implementation is not to make PostgreSQL the required database engine for MOS.
+
+Instead, PostgreSQL serves as the first complete implementation demonstrating that the PCS specification can be realized using mature database technologies.
+
+This reference implementation provides:
+
+* relational persistence,
+* graph capabilities,
+* vector search,
+* temporal storage,
+* event processing,
+* provenance tracking,
+* version management,
+* distributed operation.
+
+---
+
+# Chapter 1
+
+# Implementation Philosophy
+
+The PostgreSQL implementation follows one core rule:
+
+> The database stores cognitive truth. Derived systems accelerate access to that truth.
+
+Therefore:
+
+Authoritative:
+
+* entities,
+* facts,
+* events,
+* relationships,
+* versions,
+* provenance.
+
+Derived:
+
+* embeddings,
+* caches,
+* summaries,
+* indexes,
+* projections.
+
+Derived data may be rebuilt.
+
+Authoritative data may not be lost.
+
+---
+
+# Chapter 2
+
+# PostgreSQL Architecture
+
+The MOS PostgreSQL implementation is divided into schemas.
+
+```
+mos/
+│
+├── identity
+├── memory
+├── knowledge
+├── graph
+├── planning
+├── execution
+├── communication
+├── governance
+├── retrieval
+├── embeddings
+├── documents
+├── telemetry
+├── cache
+├── archive
+└── system
+```
+
+Each schema represents a Storage Domain.
+
+---
+
+# Chapter 3
+
+# Required PostgreSQL Extensions
+
+The reference implementation uses:
+
+```sql
+CREATE EXTENSION pgcrypto;
+CREATE EXTENSION "uuid-ossp";
+CREATE EXTENSION vector;
+CREATE EXTENSION pg_trgm;
+CREATE EXTENSION btree_gin;
+CREATE EXTENSION pg_stat_statements;
+CREATE EXTENSION timescaledb;
+```
+
+Optional:
+
+```sql
+CREATE EXTENSION age;
+CREATE EXTENSION bloom;
+```
+
+---
+
+# Chapter 4
+
+# Universal Object Model
+
+Every MOS object begins with a common structure.
+
+Conceptual model:
+
+```
+mos_object
+
+id
+object_type
+domain
+storage_class
+lifecycle_state
+created_at
+updated_at
+version
+provenance_id
+metadata
+```
+
+Every specialized table extends this model.
+
+---
+
+# Chapter 5
+
+# Core Identity Schema
+
+The identity schema manages persistent identities.
+
+## identity.objects
+
+Purpose:
+
+Global identity registry.
+
+Fields:
+
+```
+object_id UUID PRIMARY KEY
+
+object_type
+
+created_at
+
+status
+
+owner_id
+
+metadata JSONB
+```
+
+Every Cognitive Object receives exactly one identity.
+
+---
+
+# Chapter 6
+
+# Event Storage
+
+Events are immutable.
+
+Schema:
+
+```
+memory.events
+```
+
+Fields:
+
+```
+event_id UUID
+
+timestamp
+
+actor_id
+
+session_id
+
+event_type
+
+payload JSONB
+
+source
+
+created_at
+```
+
+Rules:
+
+* INSERT only.
+* No UPDATE.
+* No DELETE.
+
+Events are the historical foundation of MOS.
+
+---
+
+# Chapter 7
+
+# Entity Storage
+
+Entities represent persistent concepts.
+
+Schema:
+
+```
+knowledge.entities
+```
+
+Fields:
+
+```
+entity_id UUID
+
+entity_type
+
+name
+
+description
+
+aliases
+
+confidence
+
+created_at
+
+updated_at
+```
+
+Examples:
+
+* Person
+* Company
+* Project
+* Tool
+* Location
+
+---
+
+# Chapter 8
+
+# Fact Storage
+
+Facts represent semantic knowledge.
+
+Schema:
+
+```
+knowledge.facts
+```
+
+Fields:
+
+```
+fact_id UUID
+
+subject_id
+
+predicate
+
+object_id
+
+value
+
+confidence
+
+valid_from
+
+valid_until
+
+source_event_id
+
+status
+```
+
+Example:
+
+```
+(User)
+    OWNS
+(Laptop)
+```
+
+---
+
+# Chapter 9
+
+# Relationship Storage
+
+Graph relationships are stored separately.
+
+Schema:
+
+```
+graph.edges
+```
+
+Fields:
+
+```
+edge_id UUID
+
+source_id
+
+target_id
+
+relationship_type
+
+weight
+
+confidence
+
+created_at
+
+valid_from
+
+valid_until
+```
+
+This enables graph traversal.
+
+---
+
+# Chapter 10
+
+# Versioning System
+
+All mutable knowledge uses version chains.
+
+Schema:
+
+```
+system.object_versions
+```
+
+Fields:
+
+```
+version_id UUID
+
+object_id
+
+version_number
+
+previous_version
+
+created_by
+
+created_at
+
+change_reason
+
+snapshot JSONB
+```
+
+Old versions remain queryable.
+
+---
+
+# Chapter 11
+
+# Provenance System
+
+Schema:
+
+```
+system.provenance
+```
+
+Fields:
+
+```
+provenance_id UUID
+
+source_type
+
+source_id
+
+actor
+
+model
+
+timestamp
+
+confidence
+
+explanation
+```
+
+No knowledge exists without provenance.
+
+---
+
+# Chapter 12
+
+# Embedding Storage
+
+Embeddings are derived representations.
+
+Schema:
+
+```
+embeddings.vectors
+```
+
+Fields:
+
+```
+embedding_id UUID
+
+object_id
+
+model_name
+
+dimension
+
+vector
+
+created_at
+```
+
+Example:
+
+```sql
+vector(1536)
+```
+
+Indexes:
+
+* HNSW
+* IVFFlat
+
+---
+
+# Chapter 13
+
+# Document Storage
+
+Schema:
+
+```
+documents.documents
+```
+
+Stores:
+
+```
+document_id
+
+filename
+
+checksum
+
+source
+
+mime_type
+
+created_at
+
+metadata
+```
+
+Chunks:
+
+```
+documents.chunks
+```
+
+Fields:
+
+```
+chunk_id
+
+document_id
+
+content
+
+position
+
+embedding_id
+```
+
+Pipeline:
+
+```
+Document
+
+↓
+
+Chunk
+
+↓
+
+Embed
+
+↓
+
+Extract Knowledge
+
+↓
+
+Create Cognitive Objects
+```
+
+---
+
+# Chapter 14
+
+# Working Memory
+
+Working memory is temporary but persistent.
+
+Schema:
+
+```
+memory.working_memory
+```
+
+Fields:
+
+```
+context_id
+
+object_id
+
+priority
+
+activation_score
+
+expires_at
+```
+
+Optimized for fast retrieval.
+
+---
+
+# Chapter 15
+
+# Planning Storage
+
+Planning objects:
+
+```
+planning.goals
+
+planning.tasks
+
+planning.plans
+
+planning.dependencies
+```
+
+Example:
+
+```
+Goal
+
+↓
+
+Milestone
+
+↓
+
+Task
+
+↓
+
+Execution
+```
+
+---
+
+# Chapter 16
+
+# Execution Storage
+
+Tracks actions.
+
+Schema:
+
+```
+execution.actions
+```
+
+Stores:
+
+* tool calls,
+* results,
+* failures,
+* latency,
+* cost.
+
+Example:
+
+```
+Agent
+
+↓
+
+Tool Call
+
+↓
+
+Result
+
+↓
+
+Evaluation
+```
+
+---
+
+# Chapter 17
+
+# Telemetry Storage
+
+Telemetry uses TimescaleDB.
+
+Schema:
+
+```
+telemetry.metrics
+```
+
+Stores:
+
+* token usage,
+* latency,
+* cost,
+* CPU,
+* memory,
+* worker performance.
+
+Time-series compression is enabled.
+
+---
+
+# Chapter 18
+
+# Cache Layer
+
+Redis is recommended for:
+
+* active context,
+* semantic cache,
+* session state.
+
+PostgreSQL stores:
+
+* cache metadata,
+* invalidation rules,
+* cache provenance.
+
+---
+
+# Chapter 19
+
+# Index Strategy
+
+MOS uses multiple indexes.
+
+## Identity
+
+B-tree:
+
+```
+object_id
+```
+
+## Text
+
+GIN:
+
+```
+content
+metadata
+aliases
+```
+
+## Similarity
+
+HNSW:
+
+```
+embedding vectors
+```
+
+## Time
+
+BRIN:
+
+```
+timestamps
+```
+
+---
+
+# Chapter 20
+
+# Partitioning Strategy
+
+Large tables use partitioning.
+
+Events:
+
+```
+memory.events
+
+PARTITION BY RANGE(timestamp)
+```
+
+Telemetry:
+
+```
+PARTITION BY TIME
+```
+
+Documents:
+
+```
+PARTITION BY domain
+```
+
+---
+
+# Chapter 21
+
+# Migration Strategy
+
+MOS uses versioned migrations.
+
+Example:
+
+```
+migrations/
+
+0001_extensions.sql
+
+0002_identity.sql
+
+0003_events.sql
+
+0004_entities.sql
+
+0005_facts.sql
+
+...
+```
+
+Every schema change is reproducible.
+
+---
+
+# Chapter 22
+
+# Worker Integration
+
+Workers interact only through defined contracts.
+
+Examples:
+
+Entity Worker:
+
+```
+events
+
+↓
+
+entity extraction
+
+↓
+
+knowledge.entities
+```
+
+Embedding Worker:
+
+```
+new object
+
+↓
+
+generate embedding
+
+↓
+
+embeddings.vectors
+```
+
+Reflection Worker:
+
+```
+episodes
+
+↓
+
+analysis
+
+↓
+
+facts / skills / improvements
+```
+
+---
+
+# Chapter 23
+
+# Reference Deployment
+
+Initial deployment:
+
+```
+Application
+
+      |
+
+MOS API
+
+      |
+
+PostgreSQL
+
+      |
+
+ ┌───────────────┐
+ │ pgvector      │
+ │ TimescaleDB   │
+ │ AGE           │
+ └───────────────┘
+
+      |
+
+Redis
+
+      |
+
+Object Storage
+```
+
+---
+
+# Chapter 24
+
+# Compliance
+
+A PostgreSQL implementation complies with MOS PCS v0.1 if it provides:
+
+* Cognitive Object persistence.
+* Provenance.
+* Versioning.
+* Graph relationships.
+* Vector representations.
+* Temporal history.
+* Auditability.
+* Recovery.
+* API compatibility.
+
+---
+
+# Part VI Result
+
+The MOS PostgreSQL Reference Implementation transforms the abstract PCS specification into a buildable system.
+
+The architecture is now:
+
+```
+MOS Core
+
+↓
+
+Persistent Cognitive Substrate
+
+↓
+
+Logical Storage Model
+
+↓
+
+Physical Storage Model
+
+↓
+
+PostgreSQL Reference Implementation
+
+↓
+
+MOS API
+
+↓
+
+Agents
+```
+
+This completes the transition from theory to engineering.

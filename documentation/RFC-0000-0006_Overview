@@ -1,0 +1,541 @@
+1. MOS Core Architecture
+
+The complete MOS cognitive architecture:
+
+                         Intent
+                            │
+                            ▼
+                        Decision
+                            │
+                            ▼
+                      Capability
+                            │
+                            ▼
+                     Orchestrator
+                            │
+                            ▼
+                       Strategy
+                            │
+                            ▼
+                      Operation
+                            │
+                            ▼
+                     Transaction
+                            │
+                            ▼
+              Cognitive State Evolution
+                            │
+                            ▼
+                       Reflection
+                            │
+                            ▼
+                        Learning
+                            │
+                            ▼
+                     New Cognition
+
+This is the complete cognitive lifecycle.
+
+2. Core Design Principles
+Principle 1 — Everything Is Cognition
+
+All meaningful information participating in cognition SHALL exist as Cognitive Elements.
+
+Examples:
+
+Facts
+Entities
+Memories
+Goals
+Plans
+Policies
+Strategies
+Capabilities
+Intentions
+Decisions
+
+Nothing important exists outside the cognitive model.
+
+Principle 2 — Provenance Is Mandatory
+
+Every Cognitive Element SHALL answer:
+
+Where did it originate?
+When was it created?
+What produced it?
+What evidence supports it?
+What transformations affected it?
+
+No unexplained knowledge exists.
+
+Principle 3 — Nothing Is Silently Deleted
+
+MOS uses lifecycle transitions:
+
+Active
+
+↓
+
+Archived
+
+↓
+
+Superseded
+
+↓
+
+Expired
+
+History remains available.
+
+Principle 4 — Events Are Immutable
+
+Events represent historical reality.
+
+Events:
+
+cannot be edited,
+cannot be rewritten,
+cannot disappear.
+
+Interpretations may change.
+
+Events do not.
+
+Principle 5 — Truth Is Versioned
+
+MOS does not assume knowledge is static.
+
+Facts evolve.
+
+Policies evolve.
+
+Strategies evolve.
+
+The system preserves previous states.
+
+3. Cognitive State Space
+
+The Cognitive State Space is the complete collection of all Cognitive Elements.
+
+Conceptually:
+
+Cognitive State Space
+
+├── Events
+├── Entities
+├── Facts
+├── Relationships
+├── Experiences
+├── Goals
+├── Plans
+├── Skills
+├── Procedures
+├── Policies
+├── Capabilities
+├── Strategies
+├── Intents
+├── Decisions
+└── Evaluations
+
+Everything is connected through semantic relationships.
+
+4. Cognitive Elements
+
+A Cognitive Element is the fundamental unit of MOS.
+
+Every element SHALL have:
+
+Identity
+
+Globally unique identifier.
+
+Type
+
+Semantic classification.
+
+Provenance
+
+Origin information.
+
+Version
+
+Historical evolution.
+
+Lifecycle
+
+Current state.
+
+Relationships
+
+Connections to other elements.
+
+Metadata
+
+Additional contextual information.
+
+5. Cognitive Evolution
+
+Cognition evolves through:
+
+Observation
+
+↓
+
+Interpretation
+
+↓
+
+Representation
+
+↓
+
+Validation
+
+↓
+
+Integration
+
+↓
+
+Usage
+
+↓
+
+Evaluation
+
+↓
+
+Reflection
+
+↓
+
+Learning
+
+This is the MOS learning cycle.
+
+6. Domains
+
+Domains are semantic organizations of cognition.
+
+Domains do not own cognition.
+
+They project views over the Cognitive State Space.
+
+Core domains:
+
+Observation
+
+Raw incoming information.
+
+Knowledge
+
+Validated understanding.
+
+Attention
+
+Currently active cognition.
+
+Planning
+
+Future-oriented cognition.
+
+Execution
+
+External interaction.
+
+Reflection
+
+Self-improvement.
+
+Learning
+
+Adaptation.
+
+Prediction
+
+Possible future states.
+
+Governance
+
+Control of cognition.
+
+Archive
+
+Low-activation historical cognition.
+
+7. Meta-Cognitive Layer
+
+MOS introduces Meta-Cognition.
+
+Meta-Cognitive Elements describe, control, or improve cognition itself.
+
+Examples:
+
+Policies
+
+Rules governing behavior.
+
+Strategies
+
+Methods of achieving capabilities.
+
+Orchestrators
+
+Systems that select strategies.
+
+Ontologies
+
+Models of meaning.
+
+Evaluation Models
+
+Models of quality.
+
+Trust Models
+
+Models of reliability.
+
+Important rule:
+
+The system that governs cognition is itself part of cognition.
+
+8. Capability Layer
+
+Capabilities define what cognition can do.
+
+Core capabilities:
+
+Observe
+Remember
+Recall
+Search
+Explain
+Reason
+Plan
+Execute
+Reflect
+Learn
+Predict
+Govern
+Monitor
+
+Capabilities:
+
+have contracts,
+are versioned,
+are explainable,
+use strategies.
+9. Intent and Decision Layer
+
+Intent provides purpose.
+
+Decision provides commitment.
+
+Relationship:
+
+Intent
+
+↓
+
+Goal
+
+↓
+
+Decision
+
+↓
+
+Capability
+
+↓
+
+Action
+
+
+Important separation:
+
+Fact:
+
+"What is true."
+
+Decision:
+
+"What we choose to do."
+
+10. Unified Explainability Model
+
+Every MOS action SHALL produce an explanation chain.
+
+Example:
+
+Intent
+
+↓
+
+Decision
+
+↓
+
+Capability
+
+↓
+
+Strategy
+
+↓
+
+Operations
+
+↓
+
+Transactions
+
+↓
+
+State Changes
+
+↓
+
+Outcome
+
+This is the MOS Explainability Graph.
+
+11. Terminology Freeze
+
+The following terms are now frozen for MOS Core v0.1.0.
+
+Cognitive Element
+
+The fundamental unit of cognition.
+
+Cognitive State Space
+
+The complete set of Cognitive Elements.
+
+Domain
+
+A semantic projection over cognition.
+
+Meta-Cognitive Element
+
+An element describing or governing cognition.
+
+Capability
+
+A semantic ability.
+
+Strategy
+
+A method for realizing a capability.
+
+Orchestrator
+
+A selector and coordinator of strategies.
+
+Operation
+
+An atomic cognitive transformation.
+
+Transaction
+
+A committed state transition.
+
+Intent
+
+A purpose driving cognition.
+
+Decision
+
+A chosen future action under uncertainty.
+
+12. Missing Primitive Review
+
+After reviewing RFC-0001 through RFC-0006, I identify only a few missing concepts.
+
+These should NOT be added to Core yet.
+
+They belong in later specifications.
+
+Missing Primitive 1 — Resource Model
+
+Needed for:
+
+compute
+storage
+cost
+energy
+latency
+
+Decision making eventually needs resource awareness.
+
+Future:
+
+RFC-0007 Resource and Economy Model
+Missing Primitive 2 — Communication Model
+
+Needed for:
+
+multi-agent systems
+distributed cognition
+A2A interaction
+
+Future:
+
+RFC-0008 Cognitive Communication Model
+Missing Primitive 3 — Identity and Trust Model
+
+Needed for:
+
+agents
+humans
+organizations
+permissions
+
+Future:
+
+RFC-0009 Cognitive Identity Model
+Missing Primitive 4 — Temporal Model
+
+Time exists everywhere, but we have not formalized:
+
+causality
+sequence
+temporal reasoning
+historical reconstruction
+
+Future:
+
+RFC-0010 Temporal Cognition Model
+Missing Primitive 5 — Evaluation and Improvement Model
+
+Reflection exists, but formal:
+
+benchmarks
+rewards
+quality measurement
+self-improvement
+
+should be separate.
+
+Future:
+
+RFC-0011 Cognitive Evaluation Model
+13. Core Completeness Assessment
+
+Current status:
+
+Area	Status
+Memory representation	Complete
+Knowledge representation	Complete
+Provenance	Complete
+Versioning	Complete
+Domains	Complete
+Meta-cognition	Complete
+Capabilities	Complete
+Intent	Complete
+Decisions	Complete
+Explainability	Complete
+Storage implementation	Not started
+API layer	Not started
+Network layer	Not started

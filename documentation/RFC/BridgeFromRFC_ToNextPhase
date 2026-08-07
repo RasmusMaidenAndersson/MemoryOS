@@ -1,0 +1,12 @@
+Bridge to the next phase
+
+RFC-0014 intentionally serves as the bridge from theory to implementation. The next documents should no longer introduce new cognitive concepts. Instead, they should specify how this architecture is realized.
+
+That implementation phase naturally begins with:
+
+MOS Storage Specification — translating Memory Spaces into PostgreSQL schemas, tables, indexes, partitions, graph structures, vector storage, and lifecycle rules.
+MOS API Specification — defining the stable interfaces (remember(), recall(), reflect(), plan(), search(), etc.) that any agent framework can use.
+MOS Worker Specification — defining the contracts, queues, state transitions, and responsibilities for every background worker.
+MOS Network Specification — defining distributed synchronization, federation, replication, and cross-node cognition.
+
+At this point, MOS has a conceptual foundation comparable to what an instruction set architecture is for a CPU: a stable contract that multiple implementations can build upon while remaining interoperable.

@@ -1,0 +1,181 @@
+                    Intent
+                       │
+                       ▼
+                  Decision
+                       │
+                       ▼
+              Resource Assessment
+                       │
+                       ▼
+                 Capability
+                       │
+                       ▼
+                Orchestrator
+                       │
+                       ▼
+                  Strategy
+                       │
+                       ▼
+                Operation
+                       │
+                       ▼
+               Transaction
+                       │
+                       ▼
+          Cognitive State Evolution
+                       │
+                       ▼
+                 Reflection
+                       │
+                       ▼
+                  Learning
+
+Updated MOS Cognitive Model:
+                 Intent
+
+                    │
+
+                    ▼
+
+                Decision
+
+                    │
+
+                    ▼
+
+              Resource Model
+
+                    │
+
+                    ▼
+
+              Capability
+
+                    │
+
+                    ▼
+
+           Cognitive Network
+
+                    │
+
+                    ▼
+
+              Identity + Trust
+
+                    │
+
+                    ▼
+
+             Temporal Reality
+
+                    │
+
+                    ▼
+
+          Cognitive State Evolution
+
+                    │
+
+                    ▼
+
+                Learning
+
+Complete MOS Cognitive Kernel v0.2:
+                         Intent
+                            │
+                            ▼
+                       Decision
+                            │
+                            ▼
+                     Resource Model
+                            │
+                            ▼
+                      Capability
+                            │
+                            ▼
+                    Communication
+                            │
+                            ▼
+                  Identity + Trust
+                            │
+                            ▼
+                Temporal Understanding
+                            │
+                            ▼
+                       Execution
+                            │
+                            ▼
+                      Evaluation
+                            │
+                            ▼
+                      Reflection
+                            │
+                            ▼
+                       Learning
+                            │
+                            ▼
+                    Cognitive Evolution
+
+Yet on updated version:
+                    Intent
+
+                      │
+
+                      ▼
+
+                  Decision
+
+                      │
+
+                      ▼
+
+              Governance Check
+
+                      │
+
+                      ▼
+
+              Resource Evaluation
+
+                      │
+
+                      ▼
+
+                Capability
+
+                      │
+
+                      ▼
+
+              Communication
+
+                      │
+
+                      ▼
+
+              Identity + Trust
+
+                      │
+
+                      ▼
+
+              Temporal Execution
+
+                      │
+
+                      ▼
+
+               Evaluation
+
+                      │
+
+                      ▼
+
+               Reflection
+
+                      │
+
+                      ▼
+
+                Learning

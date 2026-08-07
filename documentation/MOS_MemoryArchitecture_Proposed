@@ -1,0 +1,29 @@
+                    Cognitive State Space
+                              │
+     ┌────────────────────────┼─────────────────────────┐
+     │                        │                         │
+     ▼                        ▼                         ▼
+ Working Memory        Long-Term Memory         World Memory
+     │                        │                         │
+     │                        │                         │
+     │                        ├──────────────┐          │
+     │                        │              │          │
+     ▼                        ▼              ▼          ▼
+Attention             Semantic Memory   Episodic   Environment Memory
+     │                        │          Memory         │
+     ▼                        ▼              ▼          ▼
+Reasoning             Facts          Experiences   World State
+     │                        │              │          │
+     └────────────────────────┼──────────────┘          │
+                              ▼                         ▼
+                      Procedural Memory        Predictive Memory
+                              │                         │
+                              ▼                         ▼
+                        Skills & Plans         Simulations
+                              │                         │
+                              └──────────┬──────────────┘
+                                         ▼
+                                 Reflection Memory
+                                         │
+                                         ▼
+                                  Meta-Cognition
