@@ -1,0 +1,46 @@
+MOS Storage Specification v0.1.0
+Part VI — Canonical Relational Schema
+
+Status: Draft for freeze
+Authority: MOS Storage Specification
+Database: PostgreSQL
+Primary identifier: UUID
+Primary time model: UTC
+Primary source of truth: Authoritative relational state + immutable event/provenance history
+
+1. Storage Architecture
+
+MOS divides storage into six classes:
+
+┌──────────────────────────────────────────────┐
+│                 MOS STORAGE                  │
+├──────────────────────────────────────────────┤
+│                                              │
+│  AUTHORITATIVE                               │
+│  ├── identity                                │
+│  ├── event                                   │
+│  ├── memory                                  │
+│  ├── provenance                              │
+│  ├── knowledge                               │
+│  ├── cognition                               │
+│  ├── planning                                │
+│  └── execution                               │
+│                                              │
+│  DERIVED                                     │
+│  ├── graph                                   │
+│  ├── embedding                               │
+│  └── retrieval                               │
+│                                              │
+│  EPHEMERAL                                   │
+│  └── cache                                   │
+│                                              │
+│  DISTRIBUTED                                 │
+│  └── network                                 │
+│                                              │
+│  OPERATIONAL                                 │
+│  ├── telemetry                               │
+│  └── system                                  │
+│                                              │
+└──────────────────────────────────────────────┘
+
+The distinction is fundamental.

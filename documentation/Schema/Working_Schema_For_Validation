@@ -1,0 +1,17 @@
+MOS Core Spec v0.1
+        ↓
+MOS Storage Spec v0.1
+        ↓
+Canonical relational schema       ← DONE
+        ↓
+Existing Migration                 ← need actual SQL
+        ↓
+Schema-level diff
+        ↓
+Migration V2
+        ↓
+Relational integrity validation
+        ↓
+Migration V2 validation
+        ↓
+MOS Storage v0.1.0 freeze

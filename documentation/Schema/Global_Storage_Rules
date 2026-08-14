@@ -1,0 +1,1018 @@
+2. Global Storage Rules
+
+Every persistent MOS object follows these rules unless explicitly overridden.
+
+ID
+UUID
+
+No auto-incrementing integer IDs for MOS domain objects.
+
+Time
+TIMESTAMPTZ
+
+All timestamps are UTC.
+
+Deletion
+
+Authoritative objects use:
+
+ON DELETE RESTRICT
+
+by default.
+
+Physical deletion is prohibited for immutable historical objects.
+
+Metadata
+
+Free-form metadata uses:
+
+JSONB
+
+but semantic fields must be normal relational columns.
+
+Version
+
+Where versioning applies:
+
+BIGINT
+
+starting at:
+
+1
+
+Version numbers are monotonically increasing.
+
+3. Schema: system
+
+System metadata.
+
+system.schema_versions
+
+Tracks MOS storage schema versions.
+
+Column	Type	Null	Description
+schema_version_id	UUID	NO	Primary key
+version	TEXT	NO	MOS storage version
+status	TEXT	NO	migration state
+applied_at	TIMESTAMPTZ	NO	Installation time
+checksum	TEXT	NO	Migration checksum
+metadata	JSONB	YES	Additional information
+
+Constraints:
+
+UNIQUE(version)
+
+Authority:
+
+Authoritative operational metadata
+
+4. Schema: identity
+
+Identity is deliberately separated from agents.
+
+The fundamental object is the Principal.
+
+identity.principals
+
+Represents anything capable of acting or being identified.
+
+Column	Type	Null
+principal_id	UUID	NO
+principal_type	principal_type	NO
+name	TEXT	NO
+status	identity_status	NO
+created_at	TIMESTAMPTZ	NO
+updated_at	TIMESTAMPTZ	NO
+metadata	JSONB	YES
+
+Types:
+
+human
+agent
+service
+system
+network_node
+external
+
+Primary key:
+
+principal_id
+identity.agents
+
+Agent-specific information.
+
+Column	Type	Null
+agent_id	UUID	NO
+principal_id	UUID	NO
+agent_type	TEXT	NO
+model_identifier	TEXT	YES
+version	TEXT	YES
+configuration	JSONB	YES
+created_at	TIMESTAMPTZ	NO
+
+FK:
+
+principal_id → identity.principals
+
+Unique:
+
+principal_id
+
+An agent is therefore:
+
+Principal
+   +
+Agent profile
+5. Schema: event
+
+Events are the immutable historical backbone.
+
+event.sessions
+
+Represents an interaction/session boundary.
+
+Column	Type	Null
+session_id	UUID	NO
+principal_id	UUID	NO
+started_at	TIMESTAMPTZ	NO
+ended_at	TIMESTAMPTZ	YES
+session_type	TEXT	YES
+metadata	JSONB	YES
+
+FK:
+
+principal_id → identity.principals
+event.events
+
+The MOS immutable event log.
+
+Column	Type	Null
+event_id	UUID	NO
+session_id	UUID	YES
+actor_id	UUID	NO
+event_type	TEXT	NO
+occurred_at	TIMESTAMPTZ	NO
+recorded_at	TIMESTAMPTZ	NO
+payload	JSONB	NO
+payload_hash	TEXT	NO
+schema_version	TEXT	NO
+metadata	JSONB	YES
+
+FKs:
+
+session_id → event.sessions
+actor_id → identity.principals
+
+Rules:
+
+IMMUTABLE
+
+No UPDATE.
+
+No DELETE.
+
+payload_hash provides tamper detection.
+
+event.event_links
+
+Connects events without changing the events.
+
+Column	Type	Null
+event_link_id	UUID	NO
+source_event_id	UUID	NO
+target_event_id	UUID	NO
+relation	TEXT	NO
+created_at	TIMESTAMPTZ	NO
+
+FKs:
+
+source_event_id → event.events
+target_event_id → event.events
+
+Constraint:
+
+source_event_id <> target_event_id
+6. Schema: memory
+
+This is the primary semantic memory layer.
+
+memory.entities
+
+Canonical objects in MOS.
+
+Column	Type	Null
+entity_id	UUID	NO
+entity_type	TEXT	NO
+canonical_name	TEXT	NO
+status	entity_status	NO
+created_at	TIMESTAMPTZ	NO
+updated_at	TIMESTAMPTZ	NO
+metadata	JSONB	YES
+memory.entity_aliases
+Column	Type	Null
+alias_id	UUID	NO
+entity_id	UUID	NO
+alias	TEXT	NO
+alias_type	TEXT	YES
+created_at	TIMESTAMPTZ	NO
+
+FK:
+
+entity_id → memory.entities
+memory.entity_identifiers
+
+External identifiers.
+
+Examples:
+
+ISBN
+GitHub ID
+DOI
+company registration number
+API ID
+Column	Type	Null
+identifier_id	UUID	NO
+entity_id	UUID	NO
+namespace	TEXT	NO
+identifier	TEXT	NO
+created_at	TIMESTAMPTZ	NO
+
+Unique:
+
+(namespace, identifier)
+memory.entity_versions
+
+Historical entity state.
+
+Column	Type	Null
+entity_version_id	UUID	NO
+entity_id	UUID	NO
+version	BIGINT	NO
+canonical_name	TEXT	NO
+entity_type	TEXT	NO
+status	entity_status	NO
+metadata	JSONB	YES
+created_at	TIMESTAMPTZ	NO
+operation_id	UUID	YES
+
+Unique:
+
+(entity_id, version)
+7. Observations
+memory.observations
+
+A raw interpretation of an event.
+
+Column	Type	Null
+observation_id	UUID	NO
+event_id	UUID	NO
+observer_id	UUID	NO
+observation_type	TEXT	NO
+content	TEXT	NO
+confidence	NUMERIC(5,4)	NO
+observed_at	TIMESTAMPTZ	NO
+metadata	JSONB	YES
+
+FKs:
+
+event_id → event.events
+observer_id → identity.principals
+
+Confidence:
+
+0.0000 ≤ confidence ≤ 1.0000
+8. Episodes
+memory.episodes
+
+A temporally coherent collection of events.
+
+Column	Type	Null
+episode_id	UUID	NO
+started_at	TIMESTAMPTZ	NO
+ended_at	TIMESTAMPTZ	YES
+title	TEXT	YES
+importance	NUMERIC(5,4)	YES
+status	memory_status	NO
+created_at	TIMESTAMPTZ	NO
+metadata	JSONB	YES
+memory.episode_events
+Column	Type	Null
+episode_id	UUID	NO
+event_id	UUID	NO
+sequence_no	BIGINT	NO
+
+PK:
+
+(episode_id, event_id)
+
+Unique:
+
+(episode_id, sequence_no)
+memory.episode_summaries
+Column	Type	Null
+summary_id	UUID	NO
+episode_id	UUID	NO
+version	BIGINT	NO
+summary	TEXT	NO
+model_id	TEXT	NO
+operation_id	UUID	YES
+created_at	TIMESTAMPTZ	NO
+
+Unique:
+
+(episode_id, version)
+9. Schema: provenance
+
+This is one of MOS's most important domains.
+
+provenance.sources
+
+A source from which knowledge originates.
+
+Column	Type	Null
+source_id	UUID	NO
+source_type	TEXT	NO
+source_uri	TEXT	YES
+principal_id	UUID	YES
+created_at	TIMESTAMPTZ	NO
+metadata	JSONB	YES
+provenance.evidence
+
+Evidence derived from a source.
+
+Column	Type	Null
+evidence_id	UUID	NO
+source_id	UUID	NO
+event_id	UUID	YES
+content	TEXT	YES
+content_hash	TEXT	NO
+created_at	TIMESTAMPTZ	NO
+metadata	JSONB	YES
+Typed evidence relations
+
+Instead of polymorphic provenance:
+
+provenance.evidence_events
+provenance.evidence_observations
+provenance.evidence_entities
+provenance.evidence_assertions
+provenance.evidence_facts
+
+Each contains:
+
+evidence_id
+target_id
+created_at
+
+with a real FK.
+
+This is intentional.
+
+10. Schema: knowledge
+knowledge.assertions
+
+Candidate semantic claims.
+
+Column	Type	Null
+assertion_id	UUID	NO
+subject_entity_id	UUID	NO
+predicate	TEXT	NO
+object_entity_id	UUID	YES
+value	JSONB	YES
+confidence	NUMERIC(5,4)	NO
+status	assertion_status	NO
+created_at	TIMESTAMPTZ	NO
+valid_from	TIMESTAMPTZ	YES
+valid_until	TIMESTAMPTZ	YES
+operation_id	UUID	YES
+
+Constraint:
+
+object_entity_id XOR value
+11. Facts
+knowledge.facts
+
+The operational semantic memory representation.
+
+Column	Type	Null
+fact_id	UUID	NO
+subject_entity_id	UUID	NO
+predicate	TEXT	NO
+object_entity_id	UUID	YES
+value	JSONB	YES
+confidence	NUMERIC(5,4)	NO
+status	fact_status	NO
+current_version	BIGINT	NO
+importance	NUMERIC(5,4)	YES
+recall_count	BIGINT	NO
+last_accessed_at	TIMESTAMPTZ	YES
+valid_from	TIMESTAMPTZ	YES
+valid_until	TIMESTAMPTZ	YES
+created_at	TIMESTAMPTZ	NO
+updated_at	TIMESTAMPTZ	NO
+knowledge.fact_versions
+Column	Type	Null
+fact_version_id	UUID	NO
+fact_id	UUID	NO
+version	BIGINT	NO
+confidence	NUMERIC(5,4)	NO
+status	fact_status	NO
+object_entity_id	UUID	YES
+value	JSONB	YES
+valid_from	TIMESTAMPTZ	YES
+valid_until	TIMESTAMPTZ	YES
+operation_id	UUID	YES
+created_at	TIMESTAMPTZ	NO
+
+Unique:
+
+(fact_id, version)
+12. Conflicts
+knowledge.conflicts
+Column	Type	Null
+conflict_id	UUID	NO
+conflict_type	TEXT	NO
+severity	TEXT	NO
+status	conflict_status	NO
+detected_at	TIMESTAMPTZ	NO
+resolved_at	TIMESTAMPTZ	YES
+resolution	TEXT	YES
+operation_id	UUID	YES
+knowledge.conflict_facts
+Column	Type	Null
+conflict_id	UUID	NO
+fact_id	UUID	NO
+knowledge.conflict_assertions
+Column	Type	Null
+conflict_id	UUID	NO
+assertion_id	UUID	NO
+13. Schema: cognition
+
+Cognition records operations performed by MOS.
+
+cognition.operations
+Column	Type	Null
+operation_id	UUID	NO
+principal_id	UUID	NO
+operation_type	TEXT	NO
+status	operation_status	NO
+started_at	TIMESTAMPTZ	NO
+completed_at	TIMESTAMPTZ	YES
+parent_operation_id	UUID	YES
+metadata	JSONB	YES
+
+Self-reference:
+
+parent_operation_id → cognition.operations
+cognition.operation_inputs
+Column	Type	Null
+operation_id	UUID	NO
+object_type	TEXT	NO
+object_id	UUID	NO
+role	TEXT	YES
+cognition.operation_outputs
+
+Same structure:
+
+operation_id
+object_type
+object_id
+role
+
+These remain controlled polymorphic references because cognition operates across MOS domains.
+
+cognition.reasoning_runs
+Column	Type	Null
+reasoning_run_id	UUID	NO
+operation_id	UUID	NO
+model_id	TEXT	NO
+prompt_hash	TEXT	YES
+input_tokens	BIGINT	YES
+output_tokens	BIGINT	YES
+started_at	TIMESTAMPTZ	NO
+completed_at	TIMESTAMPTZ	YES
+status	operation_status	NO
+metadata	JSONB	YES
+14. Working Memory
+cognition.working_memories
+Column	Type	Null
+working_memory_id	UUID	NO
+principal_id	UUID	NO
+capacity	INTEGER	NO
+created_at	TIMESTAMPTZ	NO
+updated_at	TIMESTAMPTZ	NO
+cognition.working_memory_items
+Column	Type	Null
+working_memory_item_id	UUID	NO
+working_memory_id	UUID	NO
+object_type	TEXT	NO
+object_id	UUID	NO
+priority	NUMERIC(5,4)	NO
+inserted_at	TIMESTAMPTZ	NO
+last_accessed_at	TIMESTAMPTZ	YES
+expires_at	TIMESTAMPTZ	YES
+
+Unique:
+
+(working_memory_id, object_type, object_id)
+15. Schema: planning
+planning.goals
+Column	Type	Null
+goal_id	UUID	NO
+principal_id	UUID	NO
+title	TEXT	NO
+description	TEXT	YES
+status	goal_status	NO
+priority	NUMERIC(5,4)	YES
+created_at	TIMESTAMPTZ	NO
+target_at	TIMESTAMPTZ	YES
+completed_at	TIMESTAMPTZ	YES
+planning.plans
+Column	Type	Null
+plan_id	UUID	NO
+goal_id	UUID	NO
+version	BIGINT	NO
+status	plan_status	NO
+created_at	TIMESTAMPTZ	NO
+updated_at	TIMESTAMPTZ	NO
+metadata	JSONB	YES
+planning.milestones
+Column	Type	Null
+milestone_id	UUID	NO
+plan_id	UUID	NO
+title	TEXT	NO
+sequence_no	INTEGER	NO
+status	milestone_status	NO
+
+Unique:
+
+(plan_id, sequence_no)
+planning.tasks
+Column	Type	Null
+task_id	UUID	NO
+milestone_id	UUID	YES
+parent_task_id	UUID	YES
+title	TEXT	NO
+description	TEXT	YES
+status	task_status	NO
+priority	NUMERIC(5,4)	YES
+created_at	TIMESTAMPTZ	NO
+started_at	TIMESTAMPTZ	YES
+completed_at	TIMESTAMPTZ	YES
+planning.task_dependencies
+Column	Type	Null
+task_id	UUID	NO
+dependency_task_id	UUID	NO
+dependency_type	TEXT	NO
+
+Constraint:
+
+task_id <> dependency_task_id
+
+Cycle detection is planner-level.
+
+16. Procedural Memory
+
+Procedural memory is sufficiently important that it gets its own schema.
+
+memory.skills
+Column	Type	Null
+skill_id	UUID	NO
+title	TEXT	NO
+description	TEXT	YES
+confidence	NUMERIC(5,4)	NO
+success_rate	NUMERIC(5,4)	YES
+status	skill_status	NO
+created_at	TIMESTAMPTZ	NO
+updated_at	TIMESTAMPTZ	NO
+memory.skill_tools
+Column	Type	Null
+skill_id	UUID	NO
+tool_id	UUID	NO
+memory.procedures
+Column	Type	Null
+procedure_id	UUID	NO
+skill_id	UUID	YES
+title	TEXT	NO
+status	procedure_status	NO
+current_version	BIGINT	NO
+created_at	TIMESTAMPTZ	NO
+memory.procedure_versions
+Column	Type	Null
+procedure_version_id	UUID	NO
+procedure_id	UUID	NO
+version	BIGINT	NO
+description	TEXT	YES
+confidence	NUMERIC(5,4)	NO
+success_rate	NUMERIC(5,4)	YES
+rollback_strategy	TEXT	YES
+verification_strategy	TEXT	YES
+operation_id	UUID	YES
+created_at	TIMESTAMPTZ	NO
+
+Unique:
+
+(procedure_id, version)
+memory.procedure_steps
+Column	Type	Null
+procedure_version_id	UUID	NO
+step_id	UUID	NO
+sequence_no	INTEGER	NO
+instruction	TEXT	NO
+verification	TEXT	YES
+created_at	TIMESTAMPTZ	NO
+
+Unique:
+
+(procedure_version_id, sequence_no)
+17. Schema: execution
+execution.executions
+Column	Type	Null
+execution_id	UUID	NO
+task_id	UUID	YES
+principal_id	UUID	NO
+procedure_version_id	UUID	YES
+status	execution_status	NO
+started_at	TIMESTAMPTZ	YES
+completed_at	TIMESTAMPTZ	YES
+created_at	TIMESTAMPTZ	NO
+execution.actions
+Column	Type	Null
+action_id	UUID	NO
+execution_id	UUID	NO
+sequence_no	INTEGER	NO
+action_type	TEXT	NO
+status	action_status	NO
+started_at	TIMESTAMPTZ	YES
+completed_at	TIMESTAMPTZ	YES
+input	JSONB	YES
+output	JSONB	YES
+execution.tool_calls
+Column	Type	Null
+tool_call_id	UUID	NO
+action_id	UUID	NO
+tool_id	UUID	NO
+arguments	JSONB	YES
+result	JSONB	YES
+status	tool_call_status	NO
+started_at	TIMESTAMPTZ	YES
+completed_at	TIMESTAMPTZ	YES
+execution.execution_events
+Column	Type	Null
+execution_id	UUID	NO
+event_id	UUID	NO
+
+PK:
+
+(execution_id, event_id)
+18. Schema: graph
+
+Graph is derived, never authoritative.
+
+graph.projections
+Column	Type	Null
+projection_id	UUID	NO
+projection_version	BIGINT	NO
+status	projection_status	NO
+created_at	TIMESTAMPTZ	NO
+completed_at	TIMESTAMPTZ	YES
+source_watermark	TIMESTAMPTZ	YES
+graph.nodes
+Column	Type	Null
+node_id	UUID	NO
+projection_id	UUID	NO
+entity_id	UUID	NO
+created_at	TIMESTAMPTZ	NO
+
+Unique:
+
+(projection_id, entity_id)
+graph.edges
+Column	Type	Null
+edge_id	UUID	NO
+projection_id	UUID	NO
+source_node_id	UUID	NO
+target_node_id	UUID	NO
+relation	TEXT	NO
+weight	DOUBLE PRECISION	YES
+confidence	NUMERIC(5,4)	YES
+created_at	TIMESTAMPTZ	NO
+graph.edge_facts
+Column	Type	Null
+edge_id	UUID	NO
+fact_id	UUID	NO
+graph.edge_assertions
+Column	Type	Null
+edge_id	UUID	NO
+assertion_id	UUID	NO
+
+This gives graph provenance without polymorphic source references.
+
+19. Schema: embedding
+embedding.models
+Column	Type	Null
+model_id	UUID	NO
+provider	TEXT	NO
+model_name	TEXT	NO
+dimension	INTEGER	NO
+distance_metric	TEXT	NO
+version	TEXT	YES
+created_at	TIMESTAMPTZ	NO
+embedding.vectors
+Column	Type	Null
+embedding_id	UUID	NO
+model_id	UUID	NO
+object_type	TEXT	NO
+object_id	UUID	NO
+vector	VECTOR	NO
+content_hash	TEXT	NO
+created_at	TIMESTAMPTZ	NO
+
+Unique:
+
+(model_id, object_type, object_id, content_hash)
+
+The embedding remains regenerable.
+
+20. Schema: retrieval
+retrieval.documents
+Column	Type	Null
+document_id	UUID	NO
+entity_id	UUID	YES
+source_id	UUID	YES
+title	TEXT	YES
+content_hash	TEXT	NO
+mime_type	TEXT	YES
+created_at	TIMESTAMPTZ	NO
+metadata	JSONB	YES
+retrieval.document_chunks
+Column	Type	Null
+chunk_id	UUID	NO
+document_id	UUID	NO
+sequence_no	INTEGER	NO
+content	TEXT	NO
+content_hash	TEXT	NO
+token_count	INTEGER	YES
+created_at	TIMESTAMPTZ	NO
+
+Unique:
+
+(document_id, sequence_no)
+21. Schema: cache
+cache.semantic_entries
+Column	Type	Null
+cache_entry_id	UUID	NO
+query_hash	TEXT	NO
+result	JSONB	NO
+knowledge_version	TEXT	NO
+retrieval_policy_version	TEXT	NO
+model_version	TEXT	YES
+created_at	TIMESTAMPTZ	NO
+expires_at	TIMESTAMPTZ	YES
+
+Cache has no semantic authority.
+
+22. Schema: network
+network.nodes
+Column	Type	Null
+node_id	UUID	NO
+principal_id	UUID	NO
+node_name	TEXT	NO
+endpoint	TEXT	YES
+status	node_status	NO
+last_seen_at	TIMESTAMPTZ	YES
+metadata	JSONB	YES
+network.event_deliveries
+Column	Type	Null
+delivery_id	UUID	NO
+event_id	UUID	NO
+target_node_id	UUID	NO
+status	delivery_status	NO
+attempts	INTEGER	NO
+queued_at	TIMESTAMPTZ	NO
+delivered_at	TIMESTAMPTZ	YES
+last_error	TEXT	YES
+
+Unique:
+
+(event_id, target_node_id)
+
+This enforces transport idempotency.
+
+23. Schema: telemetry
+
+Operational and disposable.
+
+telemetry.worker_runs
+
+Tracks worker execution.
+
+telemetry.llm_calls
+
+Tracks model calls.
+
+telemetry.tool_usage
+
+Tracks tool utilization.
+
+telemetry.retrieval_runs
+
+Tracks retrieval performance.
+
+These are deliberately not semantic memory.
+
+They may be partitioned by time.
+
+24. Schema: auth
+
+Security and authorization.
+
+auth.roles
+role_id
+name
+description
+auth.permissions
+permission_id
+name
+description
+auth.principal_roles
+principal_id
+role_id
+auth.role_permissions
+role_id
+permission_id
+
+This keeps authorization separate from semantic identity.
+
+25. Canonical table inventory
+
+The current canonical v0.1.0 design therefore contains approximately:
+
+system
+  schema_versions
+
+
+identity
+  principals
+  agents
+
+
+event
+  sessions
+  events
+  event_links
+
+
+memory
+  entities
+  entity_aliases
+  entity_identifiers
+  entity_versions
+  observations
+  episodes
+  episode_events
+  episode_summaries
+  skills
+  skill_tools
+  procedures
+  procedure_versions
+  procedure_steps
+
+
+provenance
+  sources
+  evidence
+  evidence_events
+  evidence_observations
+  evidence_entities
+  evidence_assertions
+  evidence_facts
+
+
+knowledge
+  assertions
+  facts
+  fact_versions
+  conflicts
+  conflict_facts
+  conflict_assertions
+
+
+cognition
+  operations
+  operation_inputs
+  operation_outputs
+  reasoning_runs
+  working_memories
+  working_memory_items
+
+
+planning
+  goals
+  plans
+  milestones
+  tasks
+  task_dependencies
+
+
+execution
+  executions
+  actions
+  tool_calls
+  execution_events
+
+
+graph
+  projections
+  nodes
+  edges
+  edge_facts
+  edge_assertions
+
+
+embedding
+
+Total: 76 tables.
+
+That's right in the range we originally anticipated.
+
+26. The authority boundary
+
+This canonical schema gives us a very clean boundary:
+
+                    AUTHORITATIVE
+                         │
+       ┌─────────────────┼─────────────────┐
+       │                 │                 │
+    Identity          Events           Knowledge
+       │                 │                 │
+       └─────────────────┼─────────────────┘
+                         │
+                    Cognition
+                         │
+                    Planning
+                         │
+                    Execution
+                         │
+                         ▼
+                       Events
+
+while:
+
+AUTHORITATIVE
+     │
+     ├────────► Graph
+     ├────────► Embeddings
+     ├────────► Retrieval indexes
+     └────────► Cache
+
+can always be rebuilt.
+
+That is the storage architecture I would want MOS to have.
+
+27. One important thing before Migration V2
+
+I would not yet call this the final SQL schema.
+
+This document is now the canonical relational model.
+
+The next operation is mechanical:
+
+EXISTING MIGRATION
+        │
+        │ compare
+        ▼
+CANONICAL SCHEMA v0.1.0
+        │
+        ▼
+┌────────────────────────────┐
+│ CREATE                     │
+│ ALTER                      │
+│ DROP                       │
+│ ADD CONSTRAINT             │
+│ ADD INDEX                  │
+│ MOVE TABLE                 │
+│ DATA MIGRATION              │
+└────────────────────────────┘
+        │
+        ▼
+MIGRATION V2
+
+And importantly, we should not guess what your existing migration contains.
+
+Since you said we already created the migration, the next thing I need is the actual migration/schema files you currently have. If they're in this chat's accessible files, I can work from them; otherwise paste/upload the migration directory (or the SQL files).
+
+Then I can produce the exact:
+
+MOS Storage v0.1.0 ↔ Existing Migration Diff
+
+with:
+
+✓ already correct
+⚠ needs ALTER
+✚ missing
+↻ needs data migration
+✕ incorrect
+→ intentionally retained
+
+and from that generate Migration V2 rather than rewriting the database blindly.

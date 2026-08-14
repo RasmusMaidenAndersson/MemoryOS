@@ -1,0 +1,404 @@
+STEP 5 — Freeze MOS Storage v0.1.0
+
+Now we can establish the first actual storage contract.
+
+MOS Storage v0.1.0
+Authoritative domains
+identity
+event
+memory
+provenance
+knowledge
+cognition
+planning
+execution
+Derived domains
+graph
+embedding
+retrieval
+cache
+Operational domains
+network
+telemetry
+system
+auth
+Storage authority rule
+
+This becomes a formal MOS law:
+
+Authoritative state MUST be reconstructible from immutable events and durable provenance.
+
+And:
+
+Derived state MUST be regenerable from authoritative state.
+
+Therefore:
+
+DELETE ALL EMBEDDINGS
+
+is recoverable.
+
+DELETE GRAPH
+
+is recoverable.
+
+DELETE CACHE
+
+is recoverable.
+
+But:
+
+DELETE EVENTS
+DELETE PROVENANCE
+DELETE FACT HISTORY
+
+may destroy semantic history.
+
+That's a fundamentally different class of data.
+
+Version freeze
+
+We now define:
+
+MOS Core              0.1
+MOS Storage            0.1.0
+MOS API                0.1
+MOS Worker             0.1
+MOS Network            0.1
+
+The 0.1.0 storage schema means:
+
+Breaking changes require a new storage version/migration strategy.
+
+STEP 6 — Final PostgreSQL Migration Strategy
+
+Now—and only now—we should turn the validated model into migrations.
+
+I would not produce one gigantic:
+
+001_initial.sql
+
+Instead:
+
+migrations/
+
+
+001_extensions.sql
+002_schemas.sql
+003_types.sql
+004_identity.sql
+005_events.sql
+006_provenance.sql
+007_entities.sql
+008_knowledge.sql
+009_fact_versions.sql
+010_cognition.sql
+011_working_memory.sql
+012_procedures.sql
+013_planning.sql
+014_execution.sql
+015_graph.sql
+016_embeddings.sql
+017_retrieval.sql
+018_cache.sql
+019_network.sql
+020_telemetry.sql
+021_security.sql
+022_constraints.sql
+023_indexes.sql
+024_immutability.sql
+025_integrity_triggers.sql
+026_seed_system_data.sql
+
+This gives us a clean dependency order.
+
+Migration dependency structure
+Extensions
+    ↓
+Schemas
+    ↓
+Types
+    ↓
+Identity
+    ↓
+Events
+    ↓
+Provenance
+    ↓
+Memory
+    ↓
+Knowledge
+    ↓
+Cognition
+    ↓
+Planning
+    ↓
+Execution
+    ↓
+Derived projections
+    ↓
+Indexes
+    ↓
+Triggers
+    ↓
+Integrity tests
+
+This is much safer than trying to create everything simultaneously.
+
+Important migration principle
+
+The database should not merely contain constraints.
+
+It should contain invariants.
+
+For example:
+
+events are immutable
+facts have provenance
+versions increase monotonically
+task cannot depend on itself
+graph edge belongs to graph projection
+network delivery is idempotent
+
+Some can be SQL constraints.
+
+Some require triggers.
+
+Some require transactions.
+
+Some require application/service logic.
+
+We should document which layer owns each invariant.
+
+STEP 7 — Make the Invariants Executable
+
+This is where MOS starts becoming a real systems project rather than documentation.
+
+We'll create:
+
+tests/
+├── relational/
+├── lifecycle/
+├── provenance/
+├── versioning/
+├── graph/
+├── network/
+├── api/
+├── workers/
+└── integration/
+Relational tests
+
+Example:
+
+cannot create fact with nonexistent entity
+cannot create event with nonexistent principal
+cannot create observation with nonexistent observer
+cannot create provenance pointing to nonexistent fact
+cannot create duplicate working-memory reference
+cannot create duplicate network delivery
+Immutability tests
+
+Attempt:
+
+UPDATE event.events
+
+Expected:
+
+FAIL
+
+Attempt:
+
+DELETE FROM event.events
+
+Expected:
+
+FAIL
+Provenance tests
+
+Try:
+
+create fact
+without evidence
+
+Expected:
+
+FAIL
+
+Try:
+
+delete evidence referenced by fact
+
+Expected:
+
+FAIL
+Versioning tests
+
+Create:
+
+Fact v1
+
+then:
+
+Fact v2
+
+Verify:
+
+v1 still exists
+v2 exists
+v1 → v2 lineage exists
+current version = v2
+Lifecycle tests
+
+Try:
+
+COMPLETED → RUNNING
+
+Expected:
+
+FAIL
+
+Try:
+
+FAILED → SUCCEEDED
+
+Depending on the recovery model, either:
+
+FAIL
+
+or require:
+
+retry → new execution
+
+I strongly prefer the latter.
+
+A failed execution should remain failed.
+
+A retry should create a new execution.
+
+That preserves history.
+
+Network tests
+
+Send:
+
+Event X → Node B
+
+twice.
+
+Expected:
+
+one semantic event
+two transport attempts
+
+This distinction is critical.
+
+Derived-state tests
+
+Delete:
+
+embedding
+graph edge
+cache entry
+
+Then rebuild.
+
+Expected:
+
+same authoritative knowledge
+
+This proves the authoritative/derived boundary actually works.
+
+Final MOS integrity architecture
+
+After completing these seven steps, the system now has this fundamental structure:
+
+                         MOS
+                          │
+             ┌────────────┴────────────┐
+             │                         │
+      AUTHORITATIVE                DERIVED
+             │                         │
+             ▼                         ▼
+         EVENTS                    GRAPH
+             │                    EMBEDDINGS
+             ▼                    SEARCH INDEX
+        OBSERVATIONS                 CACHE
+             │
+             ▼
+         EVIDENCE
+             │
+             ▼
+          FACTS
+             │
+             ▼
+       FACT VERSIONS
+             │
+             ▼
+         KNOWLEDGE
+             │
+             ▼
+        REASONING
+             │
+             ▼
+          PLANS
+             │
+             ▼
+         EXECUTION
+             │
+             ▼
+          EVENTS
+             │
+             └──────────────┐
+                            ▼
+                         LEARNING
+
+And the most important property is:
+
+                 ┌──────────────┐
+                 │ AUTHORITATIVE│
+                 │    STATE     │
+                 └──────┬───────┘
+                        │
+              ┌─────────┼─────────┐
+              ▼         ▼         ▼
+            Graph    Embedding   Cache
+              │         │         │
+              └─────────┼─────────┘
+                        │
+                    REGENERATE
+
+So MOS doesn't fundamentally depend on its indexes.
+
+It depends on its knowledge history and provenance.
+
+What is now frozen
+
+We have effectively completed the stabilization sequence:
+
+1. Relational fixes
+
+Completed: RI-FIX-001 → RI-FIX-014.
+
+2. Relational validation
+
+Completed: core relationships and FK boundaries validated.
+
+3. Lifecycle validation
+
+Completed: state machines defined for events, entities, facts, procedures, goals, tasks, executions and network delivery.
+
+4. Cross-spec validation
+
+Completed: Core, Storage, API, Worker, Network, Graph, Embedding and Reasoning boundaries aligned.
+
+5. Storage freeze
+
+Ready: MOS Storage v0.1.0.
+
+6. Migration architecture
+
+Ready: dependency-ordered migration plan defined.
+
+7. Automated integrity validation
+
+Ready: test contract defined.

@@ -1,0 +1,1032 @@
+MOS v0.1 Stabilization
+Current specification stack
+
+We now have:
+
+MOS Core Specification v0.1
+        │
+        ├── RFC-0001 ... RFC-0014
+        │
+        ▼
+MOS Storage Specification v0.1
+        │
+        ▼
+MOS API Specification v0.1
+        │
+        ▼
+MOS Worker Specification v0.1
+        │
+        ▼
+MOS Attention & Reasoning Gateway
+        │
+        ▼
+MOS Network Specification v0.1
+
+The stabilization process is:
+
+1. Apply relational-integrity fixes
+             ↓
+2. Re-run relational validation
+             ↓
+3. Validate lifecycle/state machines
+             ↓
+4. Cross-spec validation
+             ↓
+5. Freeze MOS Storage v0.1.0
+             ↓
+6. Generate final PostgreSQL migrations
+             ↓
+7. Make invariants executable as tests
+
+Let's do all seven.
+
+STEP 1 — Apply RI-FIX-001 → RI-FIX-014
+RI-FIX-001 — Canonical Principal
+
+We introduce:
+
+identity.principals
+
+A principal represents anything capable of:
+
+producing an event
+performing an action
+operating a worker
+owning a resource
+authenticating
+authorizing
+participating in network operations
+
+Types:
+
+human
+agent
+service
+system
+network_node
+external
+
+Conceptually:
+
+identity.principals
+├── principal_id UUID
+├── principal_type
+├── name
+├── status
+├── created_at
+├── updated_at
+└── metadata
+
+Agents become a specialized identity:
+
+principal
+   │
+   └── agent
+
+This eliminates the previous ambiguity between:
+
+agent_id
+actor_id
+observer_id
+service_id
+node_id
+
+where appropriate.
+
+RI-FIX-002 — Event Sessions
+
+Add:
+
+event.sessions
+
+Relationship:
+
+Principal
+    │
+    ▼
+Session
+    │
+    ▼
+Events
+
+An event may belong to a session, but the session itself does not become part of semantic memory.
+
+Important:
+
+session_id → event.sessions
+actor_id   → identity.principals
+
+with:
+
+ON DELETE RESTRICT
+RI-FIX-003 — Immutable Events
+
+Events become genuinely immutable.
+
+We enforce this at two levels:
+
+Application
+
+The API provides:
+
+event.append()
+
+but no:
+
+event.update()
+event.delete()
+Database
+
+Triggers reject:
+
+UPDATE event.events
+DELETE FROM event.events
+
+The only supported lifecycle is:
+
+append
+   ↓
+immutable
+   ↓
+referenced
+   ↓
+archival/retention policy
+
+Even administrative users cannot silently rewrite historical events.
+
+RI-FIX-004 — Observation Actors
+
+Observations now use:
+
+observer_id
+    ↓
+identity.principals
+
+rather than an unconstrained UUID.
+
+This means:
+
+Observation
+    │
+    └── Observer
+          │
+          └── Principal
+
+is always resolvable.
+
+RI-FIX-005 — Versioned Episode Summaries
+
+An episode itself is derived from events.
+
+Its summary is another derived artifact.
+
+Therefore:
+
+episode
+   │
+   ├── episode_events
+   │
+   └── episode_summaries
+
+A summary contains:
+
+summary_id
+episode_id
+summary_text
+model_id
+operation_id
+version
+created_at
+
+This means MOS can answer:
+
+Which model generated this summary?
+
+and:
+
+What evidence did the episode summary derive from?
+
+RI-FIX-006 — Typed Provenance
+
+This is a major correction.
+
+We do not want arbitrary:
+
+target_type
+target_id
+
+for authoritative provenance.
+
+Instead:
+
+provenance.evidence_events
+provenance.evidence_observations
+provenance.evidence_entities
+provenance.evidence_assertions
+provenance.evidence_facts
+
+Now PostgreSQL can actually enforce:
+
+evidence_fact.fact_id
+        ↓
+memory.facts.fact_id
+
+rather than merely trusting application code.
+
+This gives MOS:
+
+Relationally enforceable provenance.
+
+RI-FIX-007 — Fact Version History
+
+A fact is no longer simply:
+
+fact.version = 4
+
+Instead:
+
+memory.facts
+        │
+        ▼
+memory.fact_versions
+
+Example:
+
+Fact
+  id = F123
+  current_version = 3
+
+
+Versions:
+
+
+v1
+User owns Framework Laptop
+
+
+v2
+User owns Framework Laptop
+confidence = 0.98
+
+
+v3
+User no longer owns Framework Laptop
+valid_until = ...
+
+Nothing disappears.
+
+This is essential for temporal reasoning.
+
+RI-FIX-008 — Working Memory Uniqueness
+
+Add:
+
+UNIQUE(
+    working_memory_id,
+    object_type,
+    object_id
+)
+
+Therefore:
+
+working memory
+       │
+       ├── fact A
+       ├── entity B
+       └── episode C
+
+cannot accidentally contain duplicate references.
+
+RI-FIX-009 — Procedure Versioning
+
+Procedures become versioned knowledge.
+
+procedure
+    │
+    └── procedure_versions
+             │
+             └── procedure_steps
+
+Example:
+
+Deploy Redis
+
+
+v1 → 8 steps → 72% success
+v2 → 7 steps → 91% success
+v3 → 7 steps → 96% success
+
+The old versions remain available.
+
+That allows MOS to learn rather than merely overwrite.
+
+RI-FIX-010 — Task Dependency Integrity
+
+Prevent:
+
+Task A → depends on → Task A
+
+with:
+
+CHECK (task_id <> dependency_task_id)
+
+More importantly, the planner must prevent cycles:
+
+A → B
+B → C
+C → A
+
+The database constraint alone cannot adequately solve arbitrary graph cycles.
+
+Therefore:
+
+database
+    ↓
+basic integrity
+
+
+planner
+    ↓
+cycle detection
+RI-FIX-011 — Execution → Event
+
+Execution is now explicitly connected to the immutable event stream.
+
+execution
+    │
+    ▼
+actions
+    │
+    ▼
+tool_calls
+    │
+    ▼
+events
+
+An execution should be able to answer:
+
+What happened?
+Who did it?
+Why?
+Which tool?
+What parameters?
+What result?
+What changed?
+
+This gives us the audit loop:
+
+Plan
+ ↓
+Execution
+ ↓
+Action
+ ↓
+Tool Call
+ ↓
+Event
+ ↓
+Observation
+ ↓
+Knowledge
+RI-FIX-012 — Graph Projection Ownership
+
+Graph becomes explicitly a projection.
+
+graph.projections
+        │
+        ├── graph.nodes
+        │
+        └── graph.edges
+
+Both nodes and edges belong to a projection.
+
+Therefore:
+
+Projection V17
+ ├── Node A
+ ├── Node B
+ └── Edge A→B
+
+cannot accidentally combine with:
+
+Projection V12
+
+This becomes particularly important when we eventually have distributed graph rebuilds.
+
+RI-FIX-013 — Version-Aware Cache
+
+Semantic cache entries must know what they were based on.
+
+Conceptually:
+
+cache.entry
+ ├── query_hash
+ ├── result
+ ├── knowledge_version
+ ├── retrieval_policy_version
+ ├── model_version
+ └── created_at
+
+Therefore:
+
+knowledge changes
+       ↓
+cache becomes stale
+
+rather than serving an old answer indefinitely.
+
+RI-FIX-014 — Network Delivery Idempotency
+
+Network delivery becomes:
+
+event
+  ↓
+delivery
+  ↓
+target node
+
+with:
+
+UNIQUE(event_id, target_node_id)
+
+MOS therefore assumes:
+
+Network delivery is at-least-once.
+
+Duplicate delivery must be harmless.
+
+This is fundamental for a distributed MOS.
+
+STEP 2 — Re-run Relational Integrity Validation
+
+Now we test the corrected architecture.
+
+Identity
+Principal
+   ↓
+Session
+   ↓
+Event
+
+PASS
+
+All relationships can be FK-enforced.
+
+Events
+Event
+ ├── Principal
+ ├── Session
+ ├── Provenance
+ └── immutable
+
+PASS
+
+Observations
+Observation
+ ├── Event
+ ├── Principal
+ └── Evidence
+
+PASS
+
+Episodes
+Episode
+ ├── Events
+ └── Summary versions
+
+PASS
+
+Entities
+Entity
+ ├── aliases
+ ├── identifiers
+ └── versions
+
+PASS
+
+Facts
+Fact
+ │
+ ├── subject → Entity
+ ├── predicate
+ ├── object → Entity
+ │
+ └── OR
+       literal value
+
+with:
+
+Entity XOR literal
+
+PASS
+
+Fact provenance
+Fact
+ ↓
+Evidence
+ ↓
+Event
+
+all relationally enforceable.
+
+PASS
+
+Fact versioning
+Fact
+ ↓
+Fact Version 1
+Fact Version 2
+Fact Version 3
+
+PASS
+
+Graph
+Projection
+ ├── Nodes
+ └── Edges
+
+PASS
+
+Embeddings
+
+Embeddings remain derived.
+
+Authoritative object
+       ↓
+Embedding
+
+If embedding storage is destroyed:
+
+knowledge survives
+
+PASS
+
+Planning
+Goal
+ ↓
+Plan
+ ↓
+Milestone
+ ↓
+Task
+ ↓
+Execution
+
+Foreign-key integrity:
+
+PASS
+
+Cycle prevention:
+
+SERVICE-LEVEL INVARIANT
+
+Network
+Event
+ ↓
+Delivery
+ ↓
+Node
+
+with idempotency:
+
+PASS
+
+Cache
+
+Cache is explicitly non-authoritative:
+
+PASS
+
+STEP 2 RESULT
+
+We now have:
+
+RELATIONAL INTEGRITY
+
+
+Core identity             PASS
+Events                    PASS
+Event immutability        PASS
+Sessions                  PASS
+Observations              PASS
+Episodes                  PASS
+Entities                  PASS
+Facts                     PASS
+Fact versions             PASS
+Provenance                PASS
+Graph projection          PASS
+Embeddings                PASS
+Working memory            PASS
+Procedures                PASS
+Planning                  PASS*
+Execution                 PASS
+Network                   PASS
+Cache                     PASS
+
+* Planning contains graph-level invariants that require service/database procedures in addition to FKs.
+
+STEP 3 — Lifecycle / State-Machine Validation
+
+This is the next critical layer.
+
+A database can have perfect foreign keys and still allow nonsensical state transitions.
+
+So we define lifecycle state machines.
+
+Event lifecycle
+
+Events don't really have a mutable lifecycle.
+
+APPENDED
+   │
+   ▼
+IMMUTABLE
+   │
+   ▼
+ARCHIVED
+
+No:
+
+UPDATE
+DELETE
+Entity lifecycle
+ACTIVE
+  │
+  ├──► ARCHIVED
+  │
+  └──► MERGED
+           │
+           ▼
+       SUPERSEDED
+
+Importantly:
+
+MERGE does not delete the original entity.
+
+It creates lineage.
+
+Entity A
+   │
+   └── merged_into → Entity B
+Fact lifecycle
+
+Facts require more sophisticated semantics.
+
+PROPOSED
+   │
+   ▼
+ACTIVE
+   │
+   ├──► SUPERSEDED
+   │
+   ├──► EXPIRED
+   │
+   ├──► REJECTED
+   │
+   └──► DISPUTED
+
+A disputed fact isn't necessarily false.
+
+It means:
+
+MOS currently has conflicting evidence.
+
+This distinction matters enormously.
+
+Fact temporal model
+
+We separate:
+
+system time
+
+from:
+
+world time
+
+Example:
+
+Learned:
+2026-08-13
+
+
+Valid from:
+2025-01-01
+
+
+Valid until:
+2026-06-01
+
+MOS learned the fact today about something that happened in the past.
+
+Therefore:
+
+created_at
+
+must never be confused with:
+
+valid_from
+valid_until
+
+This should be a formal MOS invariant.
+
+Procedure lifecycle
+DRAFT
+  │
+  ▼
+EXPERIMENTAL
+  │
+  ▼
+VALIDATED
+  │
+  ▼
+ACTIVE
+  │
+  ├──► DEPRECATED
+  │
+  └──► SUPERSEDED
+
+A new learned procedure doesn't silently replace an old one.
+
+Goal lifecycle
+PROPOSED
+   │
+   ▼
+ACTIVE
+   │
+   ├──► COMPLETED
+   ├──► FAILED
+   ├──► CANCELLED
+   └──► ABANDONED
+Task lifecycle
+PENDING
+  │
+  ▼
+READY
+  │
+  ▼
+RUNNING
+  │
+  ├──► SUCCEEDED
+  ├──► FAILED
+  ├──► CANCELLED
+  └──► BLOCKED
+
+A task cannot become READY while dependencies are unresolved.
+
+That becomes a planning invariant.
+
+Execution lifecycle
+CREATED
+  │
+  ▼
+STARTED
+  │
+  ├──► SUCCEEDED
+  ├──► FAILED
+  ├──► CANCELLED
+  └──► TIMEOUT
+Network delivery lifecycle
+QUEUED
+  │
+  ▼
+SENT
+  │
+  ├──► ACKNOWLEDGED
+  ├──► RETRYING
+  ├──► FAILED
+  └──► DEAD_LETTER
+
+And retries must not create semantic duplicates.
+
+STEP 3 RESULT
+
+The lifecycle model is now internally coherent.
+
+We have explicitly separated:
+
+identity
+existence
+validity
+version
+provenance
+status
+
+This is important because those are not the same thing.
+
+STEP 4 — Cross-Spec Validation
+
+Now we check whether the specifications agree.
+
+Core → Storage
+
+Core says:
+
+Every memory has identity, provenance, confidence and lifecycle.
+
+Storage provides:
+
+UUID
+provenance
+confidence
+status
+timestamps
+versions
+
+PASS
+
+Core → API
+
+Core operations:
+
+remember
+recall
+search
+learn
+reflect
+plan
+update_fact
+retrieve_context
+
+API can map these to the underlying storage model.
+
+But we make one important clarification:
+
+remember()
+
+doesn't directly create arbitrary facts.
+
+Instead:
+
+remember()
+   ↓
+event
+   ↓
+observation
+   ↓
+extraction
+   ↓
+candidate knowledge
+
+This prevents API clients from bypassing provenance.
+
+API → Storage
+
+API must never expose unrestricted CRUD over authoritative objects.
+
+Instead of:
+
+DELETE /facts/:id
+
+we want:
+
+POST /facts/:id/supersede
+POST /facts/:id/dispute
+POST /facts/:id/archive
+
+This respects the MOS lifecycle model.
+
+PASS after API semantic clarification.
+
+Worker → Storage
+
+Workers should operate through controlled contracts.
+
+For example:
+
+Entity Extraction Worker
+
+
+INPUT
+event_id
+
+
+OUTPUT
+entity candidates
+confidence
+evidence
+operation_id
+
+Not:
+
+UPDATE memory.entities ...
+
+directly.
+
+Workers produce operations, and operations modify authoritative state through controlled pathways.
+
+This is a major architectural rule.
+
+Worker → Event model
+
+Every significant worker action should itself be observable.
+
+Worker
+ ↓
+Operation
+ ↓
+Event
+
+Therefore we can reconstruct:
+
+Why did this fact appear?
+
+Answer:
+
+Fact
+ ↓
+Operation #891
+ ↓
+Fact extraction worker
+ ↓
+Event #38291
+ ↓
+Source
+
+PASS
+
+Network → Event model
+
+Network is transporting MOS events, not arbitrary database mutations.
+
+MOS Node A
+    │
+    │ Event
+    ▼
+MOS Network
+    │
+    ▼
+MOS Node B
+
+This is compatible with immutable events and idempotent delivery.
+
+PASS
+
+Graph → Knowledge
+
+Graph is a projection.
+
+Facts
+  ↓
+Graph
+
+never:
+
+Graph
+  ↓
+Truth
+
+PASS
+
+Embedding → Knowledge
+
+Same:
+
+Knowledge
+   ↓
+Embedding
+
+not:
+
+Embedding
+   ↓
+Knowledge
+
+PASS
+
+Attention & Reasoning Gateway
+
+The gateway consumes:
+
+working memory
+facts
+entities
+relationships
+episodes
+procedures
+plans
+retrieval results
+
+and returns:
+
+reasoning operation
+
+It doesn't become the source of truth.
+
+PASS
+
+STEP 4 RESULT
+
+Cross-spec consistency:
+
+Boundary	Result
+Core ↔ Storage	PASS
+Core ↔ API	PASS
+API ↔ Storage	PASS after lifecycle restrictions
+Worker ↔ Storage	PASS
+Worker ↔ Event system	PASS
+Network ↔ Events	PASS
+Graph ↔ Knowledge	PASS
+Embeddings ↔ Knowledge	PASS
+Reasoning ↔ Memory	PASS
+
+The architecture is now coherent.

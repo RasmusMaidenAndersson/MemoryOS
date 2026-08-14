@@ -1,0 +1,1327 @@
+1. Validation rules
+
+I propose these become permanent MOS invariants.
+
+RI-001 — Every persistent object has an identity
+
+Every first-class persistent object must have:
+
+UUID
+created_at
+
+and, where mutable:
+
+updated_at
+version
+status
+RI-002 — Events are immutable
+
+Events may be:
+
+created
+read
+linked
+projected
+
+but never:
+
+updated
+deleted
+RI-003 — Foreign keys use RESTRICT by default
+
+This is extremely important.
+
+We don't want:
+
+Entity
+   ↓
+Fact
+   ↓
+Evidence
+
+and then deleting the entity automatically destroying the provenance chain.
+
+Therefore MOS defaults to:
+
+ON DELETE RESTRICT
+
+not:
+
+ON DELETE CASCADE
+
+Exceptions must be explicitly justified.
+
+RI-004 — Provenance cannot disappear
+
+A fact without provenance is not a valid MOS fact.
+
+Conceptually:
+
+FACT
+ │
+ ├── source
+ ├── evidence
+ └── originating event
+
+must remain reconstructable.
+
+RI-005 — Graph is a projection
+
+This is one of the most important decisions.
+
+Fact
+  ↓
+Graph edge
+
+not:
+
+Graph edge
+  ↓
+Fact
+
+The graph must never become the authoritative source of knowledge.
+
+RI-006 — Embeddings are projections
+
+Similarly:
+
+Fact
+Episode
+Document
+Skill
+...
+   ↓
+Embedding
+
+An embedding can disappear and be regenerated.
+
+Therefore:
+
+Losing an embedding must never mean losing knowledge.
+
+2. Canonical dependency graph
+
+After mapping the objects, the core dependency structure becomes:
+
+                         SYSTEM
+                           │
+                           ▼
+                       IDENTITY
+                           │
+                           ▼
+                         EVENTS
+                           │
+                ┌──────────┴──────────┐
+                ▼                     ▼
+          OBSERVATIONS             EPISODES
+                │                     │
+                └──────────┬──────────┘
+                           ▼
+                       PROVENANCE
+                           │
+                           ▼
+                       EVIDENCE
+                           │
+                           ▼
+                       ASSERTIONS
+                           │
+                           ▼
+                         FACTS
+                           │
+                  ┌────────┴────────┐
+                  ▼                 ▼
+              KNOWLEDGE          GRAPH
+                 STATE
+                  │
+                  └───────────────┐
+                                  ▼
+                             EMBEDDINGS
+
+The cognitive side:
+
+EVENTS
+  │
+  ▼
+COGNITION
+  │
+  ├── reasoning runs
+  ├── operations
+  └── working memory
+           │
+           ▼
+        PLANNING
+           │
+       ┌───┴────┐
+       ▼        ▼
+     GOALS     PLANS
+                │
+                ▼
+             MILESTONES
+                │
+                ▼
+              TASKS
+                │
+                ▼
+             EXECUTION
+                │
+                ▼
+              ACTIONS
+                │
+                ▼
+             TOOL CALLS
+                │
+                ▼
+               EVENTS
+
+This creates the critical feedback loop:
+
+Knowledge
+   ↓
+Reasoning
+   ↓
+Planning
+   ↓
+Execution
+   ↓
+Events
+   ↓
+Knowledge
+
+That is exactly what we want from MOS.
+
+3. Identity validation
+identity.agents
+
+Referenced by:
+
+event.events
+provenance.sources
+cognition.operations
+execution.executions
+network.*
+
+Status:
+
+PASS
+
+However, there is one issue.
+
+We currently have:
+
+agent_id UUID
+
+in several places without necessarily enforcing that every actor is an agent.
+
+That's intentional because an actor could eventually be:
+
+human
+agent
+system
+external service
+network node
+
+Therefore we should introduce a canonical concept:
+
+Principal
+
+rather than assuming everything is an agent.
+
+Required refinement
+
+Eventually:
+
+identity.principals
+        │
+        ├── human
+        ├── agent
+        ├── service
+        ├── system
+        └── external_node
+
+Then:
+
+actor_id
+
+references identity.principals.
+
+This is a real schema correction.
+
+We'll mark it:
+
+RI-FIX-001: Introduce canonical Principal identity.
+
+4. Event validation
+
+Current:
+
+event.events
+event.event_links
+
+Dependencies are valid.
+
+But there's a major issue:
+
+actor_id UUID
+
+has no foreign key.
+
+That's dangerous.
+
+An event could reference a nonexistent actor.
+
+Fix
+
+Eventually:
+
+actor_id UUID
+    REFERENCES identity.principals(principal_id)
+    ON DELETE RESTRICT
+
+Similarly:
+
+session_id
+
+currently has no relational target.
+
+We need a proper session object.
+
+Required object
+event.sessions
+
+Then:
+
+events.session_id
+    → event.sessions.session_id
+
+This is:
+
+RI-FIX-002: Introduce event sessions.
+
+5. Event immutability
+
+Current schema doesn't enforce immutability.
+
+That is unacceptable for MOS.
+
+We need database-level protection.
+
+Conceptually:
+
+CREATE FUNCTION system.prevent_event_mutation()
+RETURNS trigger AS $$
+BEGIN
+    RAISE EXCEPTION 'MOS events are immutable';
+END;
+$$ LANGUAGE plpgsql;
+
+and triggers:
+
+BEFORE UPDATE
+BEFORE DELETE
+
+on:
+
+event.events
+
+Potentially also:
+
+event.event_links
+
+depending on the final event model.
+
+Result
+
+RI-FAIL → FIX REQUIRED
+
+RI-FIX-003: Database-enforced event immutability.
+
+6. Entity validation
+
+Current:
+
+memory.entities
+memory.entity_aliases
+memory.entity_identifiers
+
+is structurally sound.
+
+Relationships:
+
+entity
+ ├── aliases
+ └── identifiers
+
+Both use RESTRICT.
+
+PASS
+
+One thing we should add:
+
+entity_versions
+
+because the current:
+
+version BIGINT
+
+doesn't actually preserve previous versions.
+
+A version counter isn't version history.
+
+That's a crucial distinction.
+
+7. Observation validation
+
+Current:
+
+memory.observations
+        ↓
+event.events
+
+Good.
+
+But:
+
+observer_id UUID
+
+is currently untyped/unreferenced.
+
+Same problem as actor_id.
+
+Fix:
+
+observer_id
+      ↓
+identity.principals
+
+RI-FIX-004
+
+8. Episode validation
+
+Current:
+
+episodes
+episode_events
+
+is good.
+
+But episodes should themselves have provenance.
+
+An episode is derived from events.
+
+Therefore:
+
+episode
+  ↓
+episode_events
+  ↓
+events
+
+is enough to reconstruct provenance.
+
+However, a generated summary should have a model/provenance record.
+
+Therefore:
+
+episode.summary
+
+should not be considered authoritative knowledge.
+
+It is a derived projection.
+
+We should eventually model:
+
+episode_summaries
+
+with:
+
+summary
+model
+operation_id
+created_at
+version
+
+This preserves explainability.
+
+RI-FIX-005
+
+9. Provenance validation
+
+This is one of the strongest parts of the schema.
+
+sources
+   ↓
+evidence
+   ↓
+facts/assertions
+
+Good.
+
+But:
+
+provenance.evidence_links
+
+currently uses:
+
+target_type
+target_id
+
+That's a polymorphic foreign key.
+
+PostgreSQL cannot enforce:
+
+target_type = 'fact'
+target_id → knowledge.facts
+
+automatically.
+
+This is a relational integrity weakness.
+
+Better design
+
+Use explicit junction tables:
+
+evidence_facts
+evidence_assertions
+evidence_entities
+evidence_events
+evidence_observations
+
+Then PostgreSQL can enforce every relationship.
+
+This is a significant improvement.
+
+RI-FIX-006: Replace generic polymorphic provenance links with typed relation tables.
+
+10. Assertions
+
+Current:
+
+subject_entity_id
+predicate
+object_entity_id/value
+
+is correct.
+
+The important invariant:
+
+object_entity_id XOR value
+
+is approximately enforced by:
+
+CHECK (
+    object_entity_id IS NOT NULL
+    OR value IS NOT NULL
+)
+
+But this allows:
+
+object_entity_id != NULL
+AND value != NULL
+
+which may be undesirable.
+
+We should decide whether MOS allows both.
+
+My recommendation:
+
+v0.1
+
+Exactly one.
+
+CHECK (
+    (object_entity_id IS NOT NULL AND value IS NULL)
+    OR
+    (object_entity_id IS NULL AND value IS NOT NULL)
+)
+
+This gives us clean semantic typing.
+
+11. Facts
+
+Same issue exists here.
+
+We should enforce:
+
+entity object
+XOR
+literal value
+
+Also:
+
+valid_until >= valid_from
+
+when both exist.
+
+Add:
+
+CHECK (
+    valid_until IS NULL
+    OR valid_from IS NULL
+    OR valid_until >= valid_from
+)
+12. Fact versioning
+
+Current:
+
+version BIGINT
+
+is insufficient.
+
+Imagine:
+
+Fact v1
+User owns Framework Laptop
+
+then:
+
+Fact v2
+User sold Framework Laptop
+
+We need the previous state preserved.
+
+Therefore:
+
+knowledge.fact_versions
+
+should contain:
+
+fact_version_id
+fact_id
+version
+value
+confidence
+valid_from
+valid_until
+status
+created_at
+operation_id
+
+The current fact becomes a projection:
+
+fact
+  ↓
+current version
+
+while history remains available.
+
+RI-FIX-007: Add fact version history.
+
+13. Conflicts
+
+Current:
+
+conflicts
+conflict_items
+
+is structurally okay.
+
+But conflict items currently use polymorphic references:
+
+assertion_id
+fact_id
+
+with a CHECK.
+
+That's acceptable because both are explicitly constrained FKs.
+
+PASS
+
+However, we should eventually allow conflicts between:
+
+fact ↔ fact
+assertion ↔ assertion
+fact ↔ assertion
+
+which this supports.
+
+Good.
+
+14. Cognition
+
+Current:
+
+operations
+operation_inputs
+operation_outputs
+reasoning_runs
+
+The polymorphic:
+
+object_type
+object_id
+
+again cannot be FK-enforced.
+
+But here I would keep it.
+
+Why?
+
+Because cognition operates on many MOS object types:
+
+entity
+fact
+episode
+skill
+plan
+document
+goal
+...
+
+Creating dozens of junction tables would make the cognitive subsystem unnecessarily rigid.
+
+So:
+
+Provenance
+
+Strong relational integrity.
+
+Cognition
+
+Controlled polymorphism.
+
+This is an important distinction.
+
+15. Working memory
+
+Current:
+
+working_memory
+working_memory_items
+
+good.
+
+But:
+
+object_type
+object_id
+
+is polymorphic.
+
+That's acceptable because working memory is essentially a dynamic reference set.
+
+We should however enforce:
+
+one object only once per working memory
+
+with:
+
+UNIQUE (
+    working_memory_id,
+    object_type,
+    object_id
+)
+
+RI-FIX-008
+
+16. Procedures
+
+Current hierarchy:
+
+skill
+ ↓
+procedure
+ ↓
+steps
+ ↓
+failure_modes
+
+is excellent.
+
+But procedure versions aren't actually preserved.
+
+Again:
+
+version BIGINT
+
+is not history.
+
+We should introduce:
+
+procedure_versions
+
+and:
+
+procedure_step_versions
+
+eventually.
+
+This becomes especially important when MOS learns.
+
+Example:
+
+Procedure v1
+Deploy Redis
+
+
+failure rate: 18%
+
+then MOS learns:
+
+Procedure v2
+Deploy Redis
+
+
+failure rate: 4%
+
+We must be able to explain:
+
+Why did MOS change its procedure?
+
+So:
+
+RI-FIX-009: Procedure version history.
+
+17. Planning
+
+Hierarchy:
+
+Goal
+ ↓
+Plan
+ ↓
+Milestone
+ ↓
+Task
+ ↓
+Execution
+
+is valid.
+
+Dependencies:
+
+task
+ ↓
+depends_on_task
+
+also valid.
+
+But we need:
+
+CHECK (task_id <> depends_on_task_id)
+
+Otherwise:
+
+Task A depends on Task A
+
+is possible.
+
+RI-FIX-010
+
+We should also eventually prevent dependency cycles.
+
+That cannot be solved with a simple FK.
+
+We'll enforce it at the planning service/database procedure level.
+
+18. Execution
+
+Current:
+
+execution
+ ↓
+action
+ ↓
+tool_call
+
+valid.
+
+But execution should generate an event.
+
+Currently that's conceptual rather than relational.
+
+We need:
+
+execution.execution_events
+
+so we can establish:
+
+Execution
+   ↓
+Event
+
+and preserve the audit trail.
+
+RI-FIX-011
+
+19. Retrieval
+
+Current:
+
+document
+ ↓
+chunk
+
+valid.
+
+But documents should have provenance:
+
+document
+ ↓
+source
+
+already exists.
+
+Good.
+
+Chunks should have content hashes.
+
+Good.
+
+We should additionally enforce:
+
+content_hash != ''
+
+and eventually unique content within the appropriate scope.
+
+20. Embeddings
+
+This is another important finding.
+
+Current:
+
+embedding
+ ├── object_type
+ ├── object_id
+ ├── model
+ └── vector
+
+is logically correct but relationally weak.
+
+Again:
+
+object_type/object_id
+
+is polymorphic.
+
+That's okay for a projection layer.
+
+But we need:
+
+UNIQUE (
+    object_type,
+    object_id,
+    model_id
+)
+
+Otherwise we can accidentally create multiple "current" embeddings for the same object/model.
+
+Also:
+
+dimension
+
+must match the model.
+
+That should be enforced by application/database logic.
+
+21. Graph
+
+Graph is correctly modeled as a projection:
+
+entity
+ ↓
+graph.node
+ ↓
+graph.edge
+
+The critical missing integrity constraint is that both nodes must belong to the same projection version.
+
+Otherwise:
+
+Node A v1
+     ↓
+Node B v7
+
+could accidentally create an inconsistent graph.
+
+We need:
+
+graph_id / projection_id
+
+or equivalent versioned projection identity.
+
+I'd change the model to:
+
+graph.projections
+       │
+       ├── nodes
+       └── edges
+
+Then both nodes and edges reference the same projection.
+
+This is:
+
+RI-FIX-012: Graph projection ownership.
+
+Very important.
+
+22. Graph provenance
+
+Current:
+
+edge_sources
+
+is good conceptually.
+
+But it has:
+
+PRIMARY KEY(edge_id, fact_id, assertion_id)
+
+and both can be NULL.
+
+That allows a row like:
+
+edge_id = X
+fact_id = NULL
+assertion_id = NULL
+
+which is meaningless.
+
+We need:
+
+CHECK (
+    fact_id IS NOT NULL
+    OR assertion_id IS NOT NULL
+)
+
+or better, typed relation tables.
+
+23. Cache
+
+Semantic cache is deliberately disposable.
+
+Therefore:
+
+cache
+
+should have no authority over memory.
+
+Correct.
+
+Cache invalidation must be driven by:
+
+knowledge version
+context version
+model version
+policy version
+
+rather than just time.
+
+We should eventually add:
+
+knowledge_version
+retrieval_policy_version
+model_version
+
+to cache entries.
+
+Otherwise a stale answer could survive a knowledge update.
+
+RI-FIX-013
+
+24. Network
+
+Current:
+
+network.nodes
+network.event_delivery
+
+is correct conceptually.
+
+But distributed delivery needs an important invariant:
+
+same event
+same target
+same delivery
+
+must be idempotent.
+
+Currently there is no unique constraint.
+
+We should add:
+
+UNIQUE (
+    event_id,
+    target_node_id
+)
+
+This is extremely important for distributed MOS.
+
+Because network delivery will be at-least-once.
+
+Duplicate messages must be harmless.
+
+RI-FIX-014
+
+25. Telemetry
+
+Telemetry is disposable operational data.
+
+It should not become part of semantic memory unless explicitly promoted.
+
+Good separation.
+
+But telemetry tables are likely to become enormous.
+
+Therefore:
+
+telemetry.worker_runs
+telemetry.llm_calls
+event.events
+
+should eventually be partitioned by time.
+
+Not necessarily in the first migration, but the storage specification should define the partitioning strategy now.
+
+26. Security
+
+The current security model is structurally sound:
+
+principal
+ ↓
+grant
+ ↓
+permission
+ ↓
+domain
+
+But once we introduce:
+
+identity.principals
+
+we should replace the current:
+
+identity.identities
+
+references with principals where appropriate.
+
+This gives us a unified security model.
+
+27. Major validation result
+
+After walking the entire schema, I would classify the current draft:
+
+Core architecture
+
+PASS
+
+Foreign-key direction
+
+PASS
+
+Lifecycle model
+
+PASS with refinement
+
+Provenance
+
+PASS conceptually / FAIL relationally in polymorphic evidence links
+
+Versioning
+
+INCOMPLETE
+
+Events
+
+INCOMPLETE — immutability not enforced
+
+Graph
+
+INCOMPLETE — projection ownership needs strengthening
+
+Network
+
+INCOMPLETE — delivery idempotency missing
+
+Identity
+
+INCOMPLETE — Principal abstraction required
+
+Cache
+
+INCOMPLETE — version-aware invalidation needed
+
+Planning
+
+INCOMPLETE — self-dependency/cycle protection needed
+
+28. The actual fixes we should make
+
+So before producing the final migration, our schema changes are:
+
+RI-FIX-001
+Canonical Principal identity
+
+
+RI-FIX-002
+Event Sessions
+
+
+RI-FIX-003
+Database-enforced event immutability
+
+
+RI-FIX-004
+Typed observation actor
+
+
+RI-FIX-005
+Versioned episode summaries
+
+
+RI-FIX-006
+Typed provenance relationships
+
+
+RI-FIX-007
+Fact version history
+
+
+RI-FIX-008
+Working-memory uniqueness
+
+
+RI-FIX-009
+Procedure version history
+
+
+RI-FIX-010
+Prevent task self-dependency
+
+
+RI-FIX-011
+Execution → event linkage
+
+
+RI-FIX-012
+Graph projection ownership
+
+
+RI-FIX-013
+Version-aware semantic cache
+
+
+RI-FIX-014
+Network delivery idempotency
+
+And there are two broader architectural principles that emerged from the validation.
+
+29. The most important distinction: authoritative vs projected
+
+We should formally divide MOS objects into two classes.
+
+Authoritative
+Events
+Entities
+Sources
+Evidence
+Assertions
+Facts
+Fact Versions
+Goals
+Plans
+Tasks
+Procedures
+Execution records
+
+These contain actual MOS state.
+
+Derived / projected
+Graph
+Embeddings
+Summaries
+Search indexes
+Rerankings
+Semantic cache
+
+These can always be regenerated.
+
+That gives us a powerful invariant:
+
+If every authoritative object survives, MOS can reconstruct its derived state.
+
+That is one of the strongest properties we can give the system.
+
+30. Final validated architecture
+
+After this validation, I'd freeze the conceptual storage model as:
+
+                 ┌─────────────────┐
+                 │    PRINCIPAL    │
+                 └────────┬────────┘
+                          │
+                          ▼
+                 ┌─────────────────┐
+                 │     EVENTS      │
+                 │   IMMUTABLE     │
+                 └────────┬────────┘
+                          │
+             ┌────────────┼────────────┐
+             ▼            ▼            ▼
+       OBSERVATIONS    EPISODES      SOURCES
+             │            │            │
+             └────────────┼────────────┘
+                          ▼
+                      EVIDENCE
+                          │
+                          ▼
+                     ASSERTIONS
+                          │
+                          ▼
+                        FACTS
+                          │
+                          ▼
+                   FACT VERSIONS
+                          │
+             ┌────────────┼────────────┐
+             ▼            ▼            ▼
+        KNOWLEDGE       GRAPH       EMBEDDINGS
+          STATE        PROJECTION    PROJECTION
+             │
+             ▼
+         REASONING
+             │
+             ▼
+           GOALS
+             │
+             ▼
+           PLANS
+             │
+             ▼
+           TASKS
+             │
+             ▼
+         EXECUTION
+             │
+             ▼
+          ACTIONS
+             │
+             ▼
+        TOOL CALLS
+             │
+             ▼
+           EVENTS
+             │
+             └──────────────► LEARNING
+
+This is now much closer to the actual MOS core we want.
+
+What I recommend we do next
+
+Do not run another migration yet.
+
+The correct next sequence is:
+
+Apply RI-FIX-001 → RI-FIX-014 to the canonical Storage Specification.
+Re-run the relational integrity validation.
+Perform a lifecycle/state-machine validation — especially facts, versions, procedures, plans, tasks, executions and projections.
+Perform a cross-spec validation against:
+MOS Core Spec
+Storage Spec
+API Spec
+Worker Spec
+Network Spec
+Freeze MOS Storage v0.1.0.
+Only then generate the final PostgreSQL migrations.
+Build schema-level automated tests that make these invariants executable.
+
+That way, the migration you already started becomes a draft implementation, rather than something we have to treat as immutable architecture. The important thing is that we now have a precise list of where it needs to evolve before we call the storage layer stable.
