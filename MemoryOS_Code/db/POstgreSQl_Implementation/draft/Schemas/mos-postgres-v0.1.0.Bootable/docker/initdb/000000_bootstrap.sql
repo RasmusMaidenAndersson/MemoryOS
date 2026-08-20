@@ -1,0 +1,24 @@
+\set ON_ERROR_STOP on
+\i /docker-entrypoint-initdb.d/000001_extensions.sql
+\i /docker-entrypoint-initdb.d/000002_schemas.sql
+\i /docker-entrypoint-initdb.d/000003_types.sql
+\i /docker-entrypoint-initdb.d/000004_identity.sql
+\i /docker-entrypoint-initdb.d/000005_events.sql
+\i /docker-entrypoint-initdb.d/000006_memory.sql
+\i /docker-entrypoint-initdb.d/000007_provenance.sql
+\i /docker-entrypoint-initdb.d/000008_knowledge.sql
+\i /docker-entrypoint-initdb.d/000009_cognition.sql
+\i /docker-entrypoint-initdb.d/000010_procedure.sql
+\i /docker-entrypoint-initdb.d/000011_planning.sql
+\i /docker-entrypoint-initdb.d/000012_execution.sql
+\i /docker-entrypoint-initdb.d/000013_retrieval.sql
+\i /docker-entrypoint-initdb.d/000014_embedding.sql
+\i /docker-entrypoint-initdb.d/000015_projection.sql
+\i /docker-entrypoint-initdb.d/000016_graph.sql
+\i /docker-entrypoint-initdb.d/000017_cache.sql
+\i /docker-entrypoint-initdb.d/000018_network.sql
+\i /docker-entrypoint-initdb.d/000019_telemetry.sql
+\i /docker-entrypoint-initdb.d/000020_security.sql
+\i /docker-entrypoint-initdb.d/000021_constraints_triggers.sql
+\i /docker-entrypoint-initdb.d/000022_indexes.sql
+\i /docker-entrypoint-initdb.d/000023_seed.sql

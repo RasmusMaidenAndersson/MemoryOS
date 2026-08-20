@@ -1,0 +1,527 @@
+The next step should be to complete the MCP → MOS resource/provenance/event path, because this closes an important gap in the architecture.
+
+MOS MCP Integration v0.1 — Step 2
+
+We now want this:
+                         ┌──────────────────────┐
+                         │      MOS Agent       │
+                         └──────────┬───────────┘
+                                    │
+                              Attention/
+                              Tool Selection
+                                    │
+                                    ▼
+                         ┌──────────────────────┐
+                         │    MOS MCP Gateway   │
+                         └──────────┬───────────┘
+                                    │
+              ┌─────────────────────┼─────────────────────┐
+              │                     │                     │
+              ▼                     ▼                     ▼
+        MCP Resources          MCP Tools             MCP Prompts
+              │                     │                     │
+              ▼                     ▼                     ▼
+        Evidence/Context       Operation          Strategy/Input
+              │                     │                     │
+              └──────────────┬──────┴─────────────────────┘
+                             ▼
+                       PostgreSQL
+                    authoritative state
+                             │
+                             ▼
+                       MOS Event Bus
+                       Redis Streams
+                             │
+              ┌──────────────┼──────────────┐
+              ▼              ▼              ▼
+            Cache        TerminusDB      Learning
+         invalidation     projector      workers
+
+This is a very important distinction:
+
+Redis does not become the source of truth.
+
+TerminusDB does not become the source of truth.
+
+MCP does not become the source of truth.
+
+PostgreSQL remains the authoritative MOS state.
+
+1. MCP Resources
+
+We should add a proper resource path.
+
+For example an MCP server exposes:
+resource://filesystem/project/readme
+resource://github/repository/issues
+resource://database/schema
+resource://host/capabilities
+
+MOS receives:
+resource URI
+resource contents
+MCP server identity
+capability identity
+timestamp
+content hash
+
+and creates an evidence/provenance chain:
+
+MCP Server
+    │
+    ▼
+Resource
+    │
+    ▼
+Evidence
+    │
+    ├── source
+    ├── URI
+    ├── content hash
+    ├── captured_at
+    └── provenance
+
+That fits extremely well with the provenance model we've already established.
+
+2. Do NOT immediately turn every resource into a Fact
+
+This is important.
+
+Suppose MCP returns:
+
+"The PostgreSQL server is running version 17."
+
+We should initially store:
+
+Evidence
+   ↓
+candidate knowledge
+
+rather than:
+
+Evidence
+   ↓
+Fact
+
+The cognitive pipeline decides whether it becomes knowledge.
+
+So:
+
+MCP Resource
+      ↓
+Evidence
+      ↓
+Interpretation
+      ↓
+Fact candidate
+      ↓
+Validation
+      ↓
+Fact Version
+      ↓
+Knowledge State
+
+That preserves the distinction we've built into MOS between what was observed and what MOS believes to be knowledge.
+
+3. Tool execution becomes an Operation
+
+We already started this.
+
+A tool call:
+
+filesystem.read_file
+
+should produce:
+
+cognition.operations
+
+with something conceptually like:
+
+operation_type = mcp.tool_call
+agent_id       = ...
+started_at     = ...
+completed_at   = ...
+status         = completed
+
+Then:
+
+operation
+    │
+    ├── input → MCP capability
+    │
+    ├── input → arguments
+    │
+    ├── output → result
+    │
+    └── evidence → external information
+
+This is exactly what we want for auditing.
+
+4. Redis Streams becomes the event distribution layer
+
+This is where I think the architecture gets substantially stronger.
+
+Instead of having every component constantly query PostgreSQL:
+
+PostgreSQL
+ ↑    ↑    ↑    ↑
+ │    │    │    │
+cache graph worker learning
+
+we use:
+
+                 PostgreSQL
+                     │
+              authoritative commit
+                     │
+                     ▼
+                MOS Event
+                     │
+                     ▼
+              Redis Streams
+                     │
+       ┌─────────────┼─────────────┐
+       ▼             ▼             ▼
+     Cache        Graph          Learning
+  invalidator    projector       worker
+
+Redis becomes the fast distribution mechanism, not the database.
+
+5. Example event
+
+Suppose a new fact version is created.
+
+PostgreSQL commits:
+
+fact_version = FV-9281
+
+Then MOS emits:
+
+{
+  "event_type": "fact.updated",
+  "fact_id": "F-123",
+  "fact_version_id": "FV-9281",
+  "knowledge_state_id": "KS-42",
+  "operation_id": "OP-991",
+  "cache_keys": [
+    "mos:fact:F-123",
+    "mos:knowledge:F-123"
+  ]
+}
+
+Redis:
+
+mos:events
+
+Consumers receive it.
+
+Cache consumer
+
+Deletes:
+
+mos:fact:F-123
+mos:knowledge:F-123
+TerminusDB consumer
+
+Updates the graph projection.
+
+Embedding consumer
+
+Re-embeds the new knowledge if required.
+
+Learning consumer
+
+Evaluates whether this changed a strategy or model.
+
+This is much more scalable than making each subsystem tightly coupled.
+
+6. MCP capability learning
+
+This is another major piece.
+
+Suppose MOS has three ways to obtain information:
+
+Tool A
+Tool B
+Tool C
+
+MOS can record:
+
+Tool A
+success: 98%
+latency: 40ms
+information value: 0.81
+
+
+Tool B
+success: 92%
+latency: 600ms
+information value: 0.93
+
+
+Tool C
+success: 99%
+latency: 200ms
+information value: 0.62
+
+The MCP subsystem can then calculate a runtime capability score.
+
+For example:
+
+CapabilityScore =
+    reliability
+  + information value
+  + latency efficiency
+  + historical usefulness
+  + context compatibility
+
+But here's the critical MOS rule:
+
+This score is NOT itself a Fact.
+
+It's a runtime learning signal.
+
+Eventually:
+
+Observation
+    ↓
+Episode
+    ↓
+Learning analysis
+    ↓
+Strategy candidate
+    ↓
+Fact Version / Strategy Version
+    ↓
+Knowledge State
+
+This keeps our immutable knowledge architecture clean.
+
+7. This connects directly to your immutable facts design
+
+The MCP system therefore works beautifully with the fact_versions / knowledge_states model we introduced.
+
+Imagine MOS learns:
+
+Tool X is usually the fastest way to inspect PostgreSQL schemas.
+
+Initially:
+
+Fact F1
+Version V1
+
+
+"Tool X is preferred for PostgreSQL schema inspection."
+
+Later it discovers that Tool X became unreliable.
+
+We do not overwrite V1.
+
+Instead:
+
+Fact F1
+│
+├── V1
+│   └── valid until T2
+│
+└── V2
+    └── current
+
+And:
+
+knowledge_state
+    ↓
+points to V2
+
+TerminusDB can then represent the historical evolution as well.
+
+That gives us:
+
+What did MOS know?
+        ↓
+At what time?
+        ↓
+Why?
+        ↓
+From which evidence?
+        ↓
+Which operation produced it?
+        ↓
+Which agent learned it?
+        ↓
+Which version replaced it?
+
+That's one of the strongest parts of the architecture we're building.
+
+8. MCP Prompts
+
+The third MCP primitive is prompts.
+
+But we should not blindly treat MCP prompts as MOS knowledge.
+
+Instead:
+
+MCP Prompt
+     ↓
+Candidate cognitive procedure
+     ↓
+Evaluation
+     ↓
+Potential Strategy / Procedure
+
+For example:
+
+Prompt:
+"Analyze PostgreSQL query performance"
+
+could eventually become part of a MOS procedure:
+
+Procedure:
+PostgreSQL Performance Investigation
+
+
+Steps:
+1. inspect query
+2. inspect execution plan
+3. inspect indexes
+4. inspect statistics
+5. compare historical performance
+
+Again, the MCP server supplied an input.
+
+MOS owns the resulting knowledge.
+
+9. The next database boundary
+
+At this point I would introduce one more explicit concept:
+
+mcp.capabilities
+
+But not another giant generic table.
+
+The purpose should be to persist the identity/version of discovered MCP capabilities.
+
+Conceptually:
+
+mcp.servers
+mcp.capabilities
+mcp.capability_versions
+
+Something like:
+
+mcp.servers
+------------
+server_id
+name
+transport
+endpoint
+trust_level
+status
+created_at
+
+and:
+
+mcp.capabilities
+----------------
+capability_id
+server_id
+kind
+name
+current_version_id
+lifecycle
+
+and:
+
+mcp.capability_versions
+-----------------------
+capability_version_id
+capability_id
+schema_hash
+description
+input_schema
+output_schema
+discovered_at
+supersedes_version_id
+
+That is important because MCP capabilities can change.
+
+We shouldn't cache:
+
+tool_name = execute_sql
+
+forever.
+
+We need to know:
+
+Tool
+ ↓
+Version
+ ↓
+Schema hash
+ ↓
+Current version
+
+This also gives our Redis cache a natural invalidation key.
+
+10. The resulting architecture
+
+At this point the MOS stack becomes:
+
+                 ┌──────────────────────┐
+                 │       MOS Agent      │
+                 └──────────┬───────────┘
+                            │
+                    Attention Gateway
+                            │
+             ┌──────────────┴──────────────┐
+             │                             │
+       Knowledge Retrieval            MCP Gateway
+             │                             │
+       ┌─────┴─────┐                ┌─────┼─────┐
+       │           │                │     │     │
+   PostgreSQL   TerminusDB       Tools Resources Prompts
+       │           │                │     │     │
+       └─────┬─────┘                └─────┼─────┘
+             │                            │
+             │                       Operations
+             │                            │
+             └──────────┬─────────────────┘
+                        ▼
+                  MOS Event Layer
+                        │
+                   Redis Streams
+                        │
+       ┌────────────────┼─────────────────┐
+       ▼                ▼                 ▼
+     Cache          Graph Projection    Learning
+   invalidation                         workers
+                                           │
+                                           ▼
+                                  Strategy/Knowledge
+                                           │
+                                           ▼
+                                    PostgreSQL
+                                    + TerminusDB
+
+This is now becoming a genuinely coherent system rather than a collection of databases and agents.
+
+The next concrete implementation
+
+I recommend we now implement MCP Integration v0.1 — Part II in this exact order:
+
+mcp.servers
+mcp.capabilities
+mcp.capability_versions
+MCP resource discovery/read
+MCP prompt discovery/get
+PostgreSQL operation/provenance recording
+Redis Streams event contract
+cache invalidation worker
+capability-performance learning
+first MCP → Evidence → Knowledge candidate pipeline
+
+Then we'll have a complete vertical slice:
+
+discover → authorize → execute/read → record → cache → emit event → learn → eventually promote knowledge.
+
+And importantly, this doesn't conflict with our PostgreSQL/TerminusDB architecture—it actually gives both databases a very clear role.

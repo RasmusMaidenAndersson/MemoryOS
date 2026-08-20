@@ -1,0 +1,146 @@
+The MOS architecture becomes very clean
+
+Once you understand PostgreSQL/other db this way, the whole system looks like:
+                       MOS
+                        │
+          ┌─────────────┴─────────────┐
+          │                           │
+       Workers                     API
+          │                           │
+          └──────────────┬────────────┘
+                         │
+                    PostgreSQL/other DB
+                         │
+       ┌─────────────────┼─────────────────┐
+       │                 │                 │
+   Authoritative       Derived          Ephemeral
+       │                 │                 │
+       │                 │                 └── Cache
+       │                 │
+       │                 ├── Graph
+       │                 ├── Embeddings
+       │                 └── Retrieval
+       │
+       ├── Events
+       ├── Entities
+       ├── Facts
+       ├── Provenance
+       ├── Cognition
+       ├── Planning
+       └── Execution
+21. How we should actually build the MOS database
+
+I recommend not writing 76 giant tables in one SQL file.
+
+We'll build it in layers.
+
+Step 1 — PostgreSQL foundation
+Database
+Schemas
+Extensions
+Roles
+permissions
+common types
+UUID functions
+
+↓
+
+Step 2 — Identity
+principals
+agents
+
+↓
+
+Step 3 — Immutable event system
+sessions
+events
+event_links
+
+↓
+
+Step 4 — Core memory
+entities
+aliases
+identifiers
+versions
+observations
+episodes
+
+↓
+
+Step 5 — Provenance
+sources
+evidence
+evidence relations
+
+↓
+
+Step 6 — Knowledge
+assertions
+facts
+fact versions
+conflicts
+
+↓
+
+Step 7 — Cognition
+operations
+reasoning runs
+working memory
+
+↓
+
+Step 8 — Planning
+goals
+plans
+milestones
+tasks
+dependencies
+
+↓
+
+Step 9 — Procedural memory
+skills
+procedures
+procedure versions
+steps
+
+↓
+
+Step 10 — Execution
+executions
+actions
+tool calls
+execution events
+
+↓
+
+Step 11 — Derived systems
+graph
+embeddings
+retrieval
+
+↓
+
+Step 12 — Network
+nodes
+event delivery
+
+↓
+
+Step 13 — Operations
+cache
+telemetry
+auth
+
+↓
+
+Step 14 — Integrity validation
+PK tests
+FK tests
+CHECK tests
+UNIQUE tests
+version tests
+provenance tests
+immutability tests
+transaction tests

@@ -1,0 +1,141 @@
+| MOS component                  | Language                       | Why                                                        |
+| ------------------------------ | ------------------------------ | ---------------------------------------------------------- |
+| PostgreSQL / schema            | **SQL**                        | Database is the source of truth                            |
+| Core daemon / node runtime     | **Rust**                       | Memory safety + excellent performance                      |
+| Network protocol               | **Rust**                       | Strong typing, async, safe concurrency                     |
+| Workers                        | **Rust + Python**              | Rust for production workers, Python for ML/experimentation |
+| LLM/ML inference               | **Python**                     | Best ecosystem                                             |
+| Embedding pipeline             | **Python / Rust**              | Python initially; Rust for optimized production paths      |
+| Retrieval engine               | **Rust**                       | Very performance-sensitive                                 |
+| Graph algorithms               | **Rust**                       | Excellent for CPU-heavy traversal/algorithms               |
+| API server                     | **Rust**                       | Safe, fast, async                                          |
+| SDK                            | **TypeScript + Python + Rust** | Covers most agent ecosystems                               |
+| CLI                            | **Rust**                       | Single portable binary                                     |
+| Dashboard                      | **TypeScript**                 | React/Svelte/etc.                                          |
+| Migration tooling              | **SQL + Rust**                 | SQL migrations controlled by Rust CLI                      |
+| Testing                        | **Rust + Python + SQL**        | Different layers need different testing                    |
+| Performance-critical utilities | **Odin or Rust**               | Odin is viable here                                        |
+
+
+The Rust runtime would provide things like:
+
+Event ingestion
+Memory operations
+Provenance enforcement
+Versioning
+Worker scheduling
+Network communication
+Authentication
+Authorization
+Retrieval orchestration
+Caching
+Resource management
+Observability
+
+The database remains authoritative.
+
+Rust becomes the safe execution layer around it.
+-------------------------------------------------------------------
+
+The AI ecosystem is overwhelmingly Python-oriented:
+
+PyTorch
+Transformers
+vLLM
+sentence-transformers
+Hugging Face
+scikit-learn
+NumPy
+ONNX
+TensorRT interfaces
+LLM providers
+
+So Python should be the AI/ML worker language.
+
+For example:
+
+MOS
+ │
+ ├── Entity Extraction Worker
+ │       └── Python
+ │
+ ├── Embedding Worker
+ │       └── Python
+ │
+ ├── Reranking Worker
+ │       └── Python
+ │
+ ├── LLM Worker
+ │       └── Python
+ │
+ └── Reflection Worker
+         └── Python
+
+But these workers should communicate through the MOS protocol, not directly manipulate arbitrary database tables.
+
+That's an important distinction. Also if any performance-crital code need to run in this context, Mojo should/could be used, if its prove perfromance gains over Python.
+------------------------------------------------------------------
+
+TypeScript should be the client ecosystem
+
+I'd strongly recommend official SDKs:
+
+mos-sdk-rust
+mos-sdk-python
+mos-sdk-typescript
+
+Then an agent written in LangGraph could simply do something conceptually like:
+
+memory.remember(...)
+memory.recall(...)
+memory.search(...)
+memory.learn(...)
+
+while a TypeScript agent could use:
+
+await mos.memory.remember(...)
+await mos.memory.recall(...)
+
+and a Rust agent:
+
+mos.memory().remember(...)
+
+All three ultimately speak the same MOS protocol.
+---------------------------------------------------------------------------------
+
+Network architecture
+
+This is where your earlier decision to make MOS network-oriented becomes extremely valuable.
+
+I wouldn't let workers directly depend on PostgreSQL.
+
+Instead:
+
+             ┌───────────────┐
+             │   MOS Node A  │
+             └───────┬───────┘
+                     │
+               MOS Protocol
+                     │
+        ┌────────────┼────────────┐
+        │            │            │
+   MOS Node B   MOS Node C   MOS Node D
+
+Each node can have:
+
+┌───────────────────────────────┐
+│          MOS NODE             │
+│                               │
+│  API                          │
+│  Runtime                      │
+│  Worker Manager               │
+│  Retrieval                    │
+│  Cache                        │
+│  Network                      │
+│  Security                     │
+│  Telemetry                    │
+│                               │
+│       PostgreSQL              │
+└───────────────────────────────┘
+
+That lets us eventually distribute MOS across machines without changing the conceptual API.

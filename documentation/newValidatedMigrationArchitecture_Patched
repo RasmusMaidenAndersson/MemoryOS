@@ -1,0 +1,102 @@
+A rebuilt migration architecture instead of patching RC1, that's now validated
+
+THe new chain is:
+V001 Foundation
+  ↓
+V002 Events
+  ↓
+V003 Provenance
+  ↓
+V004 Memory
+  ↓
+V005 Knowledge
+  ↓
+V006 Cognition
+  ↓
+V007 Governance
+  ↓
+V008 Intent / Decisions
+  ↓
+V009 Resources
+  ↓
+V010 Planning / Execution
+  ↓
+V011 Communication
+  ↓
+V012 World Model
+  ↓
+V013 Retrieval
+  ↓
+V014 Embeddings / Projections / Graph
+  ↓
+V015 Cache / Network / Telemetry
+  ↓
+V016 Integrity / Indexes / Guards
+
+ANd foundation:  ↓
+Namespace
+   ↓
+Principal
+   ↓
+Identity
+   ↓
+Credential
+   ↓
+Agent
+   ↓
+Agent Identity
+
+Here is also all other missing primitives:
+Contexts
+Policies + Policy Versions
+Constraints
+Permissions
+Authority
+Approvals
+Intents
+Decisions
+Commitments
+Resources
+Allocations
+Consumption
+Messages
+Delegations
+Synchronizations
+World Environments
+World States
+Simulations
+Predictions
+Retrieval Requests
+Retrieval Runs
+Candidates
+Activations
+
+THe rebuid cointains 83 tables across 16 ordered migrations.
+
+Static foreign-key dependecy check of migration:
+Migrations:       16
+Tables:           83
+FK references:    113
+Missing FK targets: 0
+
+So there is no references to tables that haven't been created somewhere in the migration chain.
+THe requirement matrix also maps the major MOS Core requirements to spesific migrations.
+
+This is now the real foundation migration, rather than the earlier RC1.
+
+Other notes.
+MOS PostgreSQL Reference Schema v0.1 — Candidate Baseline
+
+rather than claiming it's fully frozen.
+
+The static validation is clean, but we still need a live PostgreSQL execution test to verify:
+
+every migration actually executes successfully,
+every trigger compiles,
+every constraint behaves as intended,
+pg_trgm/extensions are available,
+the vector configuration works,
+the seed/bootstrap process works,
+the immutable-event enforcement works at runtime.
+
+After that live test, we can freeze V001 and proceed migration-by-migration from an actual database rather than continuing to design blindly.

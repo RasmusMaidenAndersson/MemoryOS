@@ -1,0 +1,1287 @@
+MOS MCP Integration Specification v0.1
+
+Status: Draft / Architecture Baseline
+Version: 0.1
+Target MCP: 2026-07-28
+MOS Role: MCP Client / Capability Orchestrator
+Initial implementation: Python
+Primary transports: stdio + Streamable HTTP
+Authority: MOS specifications supersede implementation details
+
+1. Purpose
+
+The MOS MCP Integration Specification defines how the Memory Operating System integrates with the Model Context Protocol (MCP).
+
+MCP provides a standardized interoperability layer for:
+
+tools
+resources
+prompts
+external services
+host capabilities
+remote capabilities
+
+MOS provides the intelligence and governance around those capabilities:
+
+discovery
+selection
+authorization
+execution
+provenance
+caching
+learning
+strategy optimization
+auditing
+
+Therefore:
+
+MCP defines how MOS interacts with capabilities. MOS defines why, when, and under what conditions those capabilities are used.
+
+MCP is not MOS's memory system, reasoning system, knowledge database, or policy engine.
+
+2. Architectural Principle
+
+The fundamental relationship is:
+
+                  ┌──────────────────────┐
+                  │         MOS          │
+                  │                      │
+                  │ Attention            │
+                  │ Reasoning            │
+                  │ Policy               │
+                  │ Learning             │
+                  │ Strategy             │
+                  │ Memory               │
+                  └──────────┬───────────┘
+                             │
+                       MCP Integration
+                             │
+                  ┌──────────▼───────────┐
+                  │         MCP          │
+                  │                      │
+                  │ Resources            │
+                  │ Tools                │
+                  │ Prompts              │
+                  └──────────┬───────────┘
+                             │
+          ┌──────────────────┼──────────────────┐
+          ▼                  ▼                  ▼
+       Host OS             APIs             Services
+
+MOS must remain functional if MCP is unavailable.
+
+MCP is therefore an integration and capability plane, not an authoritative dependency.
+
+3. Design Goals
+
+The integration MUST provide:
+
+Model independence.
+MCP interoperability.
+Capability discovery.
+Capability authorization.
+Tool execution auditing.
+Resource retrieval.
+Tool-result provenance.
+Host capability awareness.
+Efficient capability caching.
+Retrieval-aware tool selection.
+Learning from tool usage.
+Strategy optimization.
+Failure recovery.
+Security boundaries.
+Version-aware caching.
+PostgreSQL provenance integration.
+Redis runtime integration.
+TerminusDB graph integration.
+Compatibility with local and remote MCP servers.
+Minimal unnecessary model context.
+4. Non-Goals
+
+MOS MCP integration MUST NOT:
+
+replace PostgreSQL;
+replace TerminusDB;
+replace pgvector;
+replace Redis;
+become the authoritative event store;
+become the reasoning engine;
+require a specific LLM;
+permanently store every MCP response;
+automatically grant tools to agents;
+execute arbitrary host commands merely because an MCP server exposes them.
+5. MOS's MCP Role
+
+MOS operates primarily as an MCP Client.
+
+MOS
+ │
+ ├── discover MCP servers
+ ├── discover capabilities
+ ├── retrieve resources
+ ├── invoke tools
+ ├── use prompts where appropriate
+ ├── authorize actions
+ ├── record operations
+ ├── cache results
+ └── learn from outcomes
+
+MOS MAY also implement MCP Servers where MOS itself needs to expose capabilities to another MCP-compatible host.
+
+That gives us:
+
+External Agent
+      │
+      ▼
+   MCP Client
+      │
+      ▼
+   MOS MCP Server
+      │
+      ▼
+     MOS
+
+This allows MOS eventually to become both:
+
+MCP consumer + MCP provider.
+
+6. MCP Version
+
+MOS v0.1 targets:
+
+MCP 2026-07-28
+
+The current MCP release uses a stateless protocol core and requires request metadata describing protocol version and client capabilities rather than relying on the previous initialization/session model.
+
+MOS MUST therefore avoid building internal architecture around the deprecated session model.
+
+MOS's own state remains in:
+
+PostgreSQL
+Redis
+TerminusDB
+
+not MCP protocol sessions.
+
+7. MCP Primitives
+
+MCP provides three fundamental server-side primitives relevant to MOS:
+
+Resources
+Tools
+Prompts
+7.1 Resources
+
+Resources represent contextual information.
+
+MOS treats them as:
+
+External or host-provided context that may become input to cognition.
+
+Examples:
+
+resource://host/system
+resource://host/processes
+resource://host/network
+resource://docker/containers
+resource://project/config
+resource://database/schema
+
+Resources SHOULD NOT automatically become permanent MOS knowledge.
+
+Instead:
+
+MCP Resource
+     ↓
+MOS retrieval
+     ↓
+relevance assessment
+     ↓
+optional evidence
+     ↓
+optional fact
+     ↓
+provenance
+8. Tools
+
+MCP tools expose executable operations. The current MCP specification explicitly defines tools as functions models can invoke to interact with external systems such as databases, APIs, and computations.
+
+MOS therefore treats tools as:
+
+Capabilities that can change or interrogate the external world.
+
+Examples:
+
+filesystem.read
+filesystem.write
+process.list
+docker.inspect
+docker.restart
+database.query
+network.lookup
+git.commit
+
+But:
+
+MCP exposes capability
+
+does not mean:
+
+MOS automatically permits capability
+9. Prompts
+
+MCP prompts MAY be consumed by MOS.
+
+However, prompts do not become authoritative MOS strategies merely because they exist.
+
+Instead:
+
+MCP Prompt
+    ↓
+MOS evaluates
+    ↓
+optional execution
+    ↓
+operation
+    ↓
+result
+    ↓
+learning
+
+A successful repeated strategy MAY eventually become a MOS-native procedure/strategy.
+
+10. Capability Registry
+
+MOS SHALL maintain an internal capability registry.
+
+Conceptually:
+
+MCP Server
+    │
+    ├── identity
+    ├── transport
+    ├── version
+    ├── capabilities
+    └── security metadata
+          │
+          ├── Tools
+          ├── Resources
+          └── Prompts
+
+The authoritative registry SHOULD be persisted in PostgreSQL.
+
+Redis maintains the runtime/discovery cache.
+
+11. Capability Identity
+
+Every discovered capability receives a stable MOS identity.
+
+Conceptually:
+
+mcp_server_id
+capability_id
+capability_type
+name
+version
+schema_hash
+server_identity
+
+Example:
+
+server:
+    host-linux
+
+
+capability:
+    docker.inspect
+
+
+schema_hash:
+    SHA256(...)
+
+The schema hash is important because:
+
+same tool name
++
+different input schema
+=
+different capability revision
+12. Capability Discovery
+
+MOS discovers MCP servers through configured mechanisms.
+
+Discovery MUST NOT automatically grant execution permissions.
+
+The lifecycle is:
+
+DISCOVERED
+    ↓
+INSPECTED
+    ↓
+REGISTERED
+    ↓
+AUTHORIZED
+    ↓
+AVAILABLE
+
+A capability may therefore exist in MOS while remaining unusable.
+
+13. Capability Lifecycle
+
+Recommended states:
+
+discovered
+registered
+authorized
+active
+degraded
+disabled
+revoked
+retired
+
+Example:
+
+MCP server discovered
+        ↓
+registered
+        ↓
+security inspection
+        ↓
+authorized
+        ↓
+active
+
+If security policy changes:
+
+active
+  ↓
+revoked
+
+Historical operations remain intact.
+
+14. Agent ↔ Capability Authorization
+
+Authorization occurs at the MOS layer.
+
+Agent
+ │
+ ▼
+Policy
+ │
+ ├── capability permitted?
+ ├── scope permitted?
+ ├── resource permitted?
+ ├── operation permitted?
+ ├── risk permitted?
+ └── context permitted?
+ │
+ ▼
+MCP invocation
+
+This means two agents can see the same MCP server while having different permissions.
+
+Example:
+
+Agent A
+ ├── filesystem.read      ✓
+ ├── database.read        ✓
+ └── shell.execute        ✗
+
+
+Agent B
+ ├── filesystem.read      ✓
+ ├── database.read        ✓
+ └── shell.execute        ✓
+15. Tool Risk Classification
+
+MOS SHOULD classify capabilities.
+
+READ
+WRITE
+MUTATE
+EXECUTE
+DESTRUCTIVE
+PRIVILEGED
+EXTERNAL_SIDE_EFFECT
+
+For example:
+
+docker.inspect
+→ READ
+
+
+docker.restart
+→ MUTATE
+
+
+shell.execute
+→ EXECUTE / PRIVILEGED
+
+
+filesystem.delete
+→ DESTRUCTIVE
+
+The classification participates in policy decisions.
+
+16. Tool Execution Pipeline
+
+Every tool execution SHOULD follow:
+
+Agent intention
+      ↓
+Attention Gateway
+      ↓
+Candidate capabilities
+      ↓
+Capability ranking
+      ↓
+Policy authorization
+      ↓
+Operation creation
+      ↓
+MCP invocation
+      ↓
+Result
+      ↓
+Validation
+      ↓
+Provenance
+      ↓
+Cache
+      ↓
+Learning
+
+This becomes one of the central MOS execution paths.
+
+17. PostgreSQL Integration
+
+Every meaningful MCP operation SHALL be represented by MOS's cognitive/operation model.
+
+Conceptually:
+
+cognition.operations
+        │
+        ├── agent
+        ├── principal
+        ├── input
+        ├── output
+        ├── status
+        └── timestamps
+
+MCP-specific metadata can reference:
+
+MCP server
+capability
+tool schema
+request hash
+authorization decision
+result hash
+
+The operation becomes the durable audit boundary.
+
+18. Provenance
+
+If an MCP resource contributes to knowledge:
+
+MCP Resource
+     ↓
+Evidence
+     ↓
+Fact
+     ↓
+FactVersion
+
+The provenance chain MUST remain intact.
+
+Example:
+
+Fact v8
+   │
+   ├── created_by_operation
+   │
+   ├── supported_by Evidence
+   │
+   └── originating MCP resource
+
+This allows MOS to answer:
+
+"Where did this knowledge come from?"
+
+without depending on Redis or the MCP server still being available.
+
+19. TerminusDB Integration
+
+MCP relationships SHOULD be projected into TerminusDB where graph traversal provides value.
+
+For example:
+
+Agent
+  │
+  └── USED_OPERATION
+          │
+          └── USED_CAPABILITY
+                    │
+                    └── PROVIDED_BY
+                            │
+                            └── MCP Server
+
+And:
+
+Operation
+   │
+   ├── USED_TOOL
+   ├── PRODUCED_EVIDENCE
+   ├── PRODUCED_FACT
+   └── FOLLOWED_STRATEGY
+
+This allows queries such as:
+
+Which agents successfully use capability X for task Y?
+
+or:
+
+Which tools have historically produced reliable evidence for this type of task?
+
+That is precisely where the graph becomes valuable.
+
+20. Redis Integration
+
+Redis is the runtime acceleration layer.
+
+It MAY cache:
+
+MCP server discovery
+capability metadata
+tool schemas
+resource metadata
+authorization decisions
+tool results
+resource results
+capability rankings
+recent failures
+working memory
+attention state
+
+It MUST NOT become authoritative for:
+
+identity
+permissions
+knowledge
+provenance
+operations
+audit history
+
+Those belong to PostgreSQL.
+
+21. MCP Capability Cache
+
+Example:
+
+mos:mcp:server:{server_id}:capabilities
+
+and:
+
+mos:mcp:tool:{capability_id}:metadata
+
+The cache identity SHOULD incorporate:
+
+server identity
+capability identity
+schema version/hash
+MCP protocol version
+discovery version
+
+The current MCP specification explicitly makes list results cacheable and deterministic, which aligns particularly well with this design.
+
+22. Tool-Result Cache
+
+Tool results MAY be cached when the operation is safely reusable.
+
+Good candidates:
+
+process.list
+system.info
+database schema inspection
+API metadata
+filesystem metadata
+
+Bad candidates:
+
+send_email
+delete_file
+restart_server
+transfer_money
+execute_transaction
+
+A result cache key SHOULD include:
+
+tool_id
+tool_version
+input_hash
+authorization_context
+host_context
+relevant knowledge/context version
+23. Side Effects
+
+MOS MUST distinguish:
+
+READ
+
+from:
+
+SIDE EFFECT
+
+A cached result MUST NEVER be interpreted as proof that a side-effecting operation has been executed.
+
+For example:
+
+restart_server()
+
+cannot safely become:
+
+cached "success"
+
+and later be treated as another execution.
+
+Every side-effecting invocation requires its own operation identity.
+
+24. Host Context
+
+MOS SHOULD maintain a host-context model.
+
+MOS Host
+ ├── OS
+ ├── CPU
+ ├── GPU
+ ├── memory
+ ├── storage
+ ├── network
+ ├── containers
+ ├── services
+ ├── MCP servers
+ └── capabilities
+
+This is partly durable knowledge and partly transient state.
+
+Therefore:
+
+PostgreSQL
+    ↓
+known host identity/configuration
+
+
+Redis
+    ↓
+current host state
+
+
+MCP
+    ↓
+live capability/resource access
+25. Host Capability Discovery
+
+The host can expose capabilities through local MCP servers.
+
+For example:
+
+MOS
+ │
+ └── local MCP server
+       ├── filesystem
+       ├── processes
+       ├── Docker
+       ├── system information
+       └── networking
+
+For local subprocess-based MCP servers, MOS SHOULD prefer stdio.
+
+For remotely accessible services, MOS SHOULD use Streamable HTTP.
+
+These are the two standard transports in the current specification.
+
+26. Transport Policy
+Local
+MOS
+ ↓
+stdio
+ ↓
+MCP subprocess
+
+Advantages:
+
+low overhead
+local isolation boundary
+simple deployment
+no network exposure
+Remote
+MOS
+ ↓
+Streamable HTTP
+ ↓
+MCP server
+
+Advantages:
+
+scalable
+routable
+load-balancer friendly
+suitable for distributed MOS deployments
+
+The current stateless MCP architecture specifically enables requests to reach different server instances behind ordinary load balancing.
+
+27. MCP State vs MOS State
+
+This distinction MUST remain explicit.
+
+MCP
+protocol interaction
+MOS
+persistent state
+
+Therefore:
+
+MCP disappears
+      ↓
+MOS survives
+      ↓
+reconnect
+      ↓
+rediscover
+      ↓
+continue
+
+No important MOS knowledge should depend on an MCP session remaining alive.
+
+28. Learning From Tool Usage
+
+This is one of the most important MOS-specific additions.
+
+Every successful/failed operation can become learning material.
+
+Task
+ ↓
+Strategy
+ ↓
+Tool selection
+ ↓
+Tool execution
+ ↓
+Result
+ ↓
+Outcome
+
+MOS can measure:
+
+latency
+success rate
+failure rate
+information value
+cost
+reliability
+side effects
+human feedback
+
+Then update strategy knowledge.
+
+29. Learned Strategy
+
+Example:
+
+Goal:
+Diagnose memory pressure
+
+Historical operations:
+
+/proc/meminfo       success
+ps                  success
+docker.stats        high-value
+top                 redundant
+
+MOS may eventually learn:
+
+Strategy: memory_diagnosis_v4
+
+
+1. host.memory
+2. process.list
+3. docker.stats
+4. inspect container only if required
+
+The strategy itself becomes versioned MOS knowledge.
+
+Strategy v1
+   ↓
+Strategy v2
+   ↓
+Strategy v3
+   ↓
+Strategy v4 CURRENT
+
+Old strategies remain auditable.
+
+This fits our immutable knowledge/versioning architecture perfectly.
+
+30. Tool Selection Learning
+
+MOS SHOULD maintain historical statistics:
+
+task_type
+capability
+strategy
+success
+failure
+latency
+cost
+information_gain
+
+This allows:
+
+Capability ranking =
+    relevance
+  + historical success
+  + information value
+  + latency
+  - cost
+  - risk
+
+The exact algorithm belongs to the Attention/Reasoning specifications, not MCP.
+
+MCP simply supplies the capability.
+
+31. Resource Learning
+
+The same applies to MCP Resources.
+
+MOS can learn:
+
+resource X
+→ usually useful for task Y
+
+and therefore prioritize it in future retrieval.
+
+This should eventually feed the Knowledge Graph:
+
+Task
+  │
+  └── BENEFITS_FROM
+         │
+         ▼
+      Resource
+32. MCP Context Must Not Automatically Become Memory
+
+This is a crucial rule.
+
+Suppose:
+
+MCP → resource://system/processes
+
+returns:
+
+chrome uses 4 GB
+
+MOS should NOT automatically store:
+
+Chrome always uses 4 GB
+
+Instead:
+
+observation
+ ↓
+evidence
+ ↓
+contextual interpretation
+ ↓
+possible fact
+
+Only knowledge that passes MOS's knowledge/validation pipeline becomes durable knowledge.
+
+33. Security Boundary
+
+The complete security model becomes:
+
+Model
+ ↓
+MOS Agent
+ ↓
+MOS Policy
+ ↓
+MCP Client
+ ↓
+MCP Authorization
+ ↓
+MCP Server
+ ↓
+Host/System
+
+Every layer has a responsibility.
+
+MCP authorization does not replace MOS authorization.
+
+MOS authorization does not replace OS/container permissions.
+
+Defense in depth is required.
+
+34. MCP Server Trust Levels
+
+MOS SHOULD classify MCP servers:
+
+TRUSTED_LOCAL
+TRUSTED_REMOTE
+UNTRUSTED_REMOTE
+EXPERIMENTAL
+REVOKED
+
+This affects:
+
+permitted tools
+resource ingestion
+caching
+persistence
+learning
+knowledge promotion
+
+For example:
+
+UNTRUSTED_REMOTE
+     ↓
+resource only
+     ↓
+no automatic fact promotion
+
+while:
+
+TRUSTED_LOCAL
+     ↓
+resource + tool
+     ↓
+normal provenance pipeline
+35. Error Handling
+
+MCP failures become MOS operation outcomes.
+
+SUCCESS
+FAILED
+TIMEOUT
+DENIED
+UNAVAILABLE
+INVALID_INPUT
+SCHEMA_MISMATCH
+AUTHENTICATION_FAILURE
+AUTHORIZATION_FAILURE
+
+Failures should themselves be useful learning data.
+
+For example:
+
+Tool X
+→ timeout 83% of attempts
+
+MOS should eventually reduce its priority.
+
+36. Capability Health
+
+Redis MAY maintain short-term health information:
+
+mos:mcp:health:{capability_id}
+
+such as:
+
+latency
+failure_count
+last_success
+last_failure
+availability
+
+PostgreSQL stores significant historical events.
+
+This lets Attention avoid repeatedly selecting unhealthy capabilities.
+
+37. MCP Extensions
+
+MOS SHOULD support MCP extensions through explicit capability negotiation rather than assuming every server implements them.
+
+The current MCP release has a formal extensions framework, which is preferable to MOS inventing protocol-specific extensions outside MCP's model.
+
+MOS-specific behavior should remain above MCP unless there is a compelling reason to implement an actual MCP extension.
+
+38. SDK
+
+Initial implementation:
+
+Python
++
+official MCP Python SDK
+
+The official SDK is Tier 1 and supports MCP clients and servers, including stdio and Streamable HTTP.
+
+We should pin the MCP SDK to a compatible stable release rather than allowing unbounded upgrades.
+
+Later:
+
+Python → default
+Rust   → performance/security-critical servers
+Go     → infrastructure services
+
+But these are implementation choices, not architectural requirements.
+
+39. End-to-End MOS MCP Flow
+
+The complete first implementation should eventually look like:
+
+                    USER / AGENT
+                         │
+                         ▼
+                 Attention Gateway
+                         │
+                         ▼
+                Capability Retrieval
+                         │
+               ┌─────────┴─────────┐
+               ▼                   ▼
+            Redis              PostgreSQL
+          capability           authoritative
+            cache               registry
+               │                   │
+               └─────────┬─────────┘
+                         ▼
+                   Policy Engine
+                         │
+                         ▼
+                  MCP Client
+                         │
+             ┌───────────┴───────────┐
+             ▼                       ▼
+           stdio               Streamable HTTP
+             │                       │
+             ▼                       ▼
+        Local MCP               Remote MCP
+        Server                  Server
+             │                       │
+             └───────────┬───────────┘
+                         ▼
+                       Result
+                         │
+             ┌───────────┼───────────┐
+             ▼           ▼           ▼
+          Redis       PostgreSQL  TerminusDB
+          cache       operation   projection
+                         │
+                         ▼
+                      Learning
+                         │
+                         ▼
+                   Strategy update
+40. First Concrete Implementation
+
+The first vertical slice should be deliberately small.
+
+Phase 1
+
+Build:
+
+MOS MCP Client
+
+Connect to:
+
+Local MCP server
+
+using:
+
+stdio
+Phase 2
+
+Discover:
+
+tools/list
+resources/list
+prompts/list
+
+and register their metadata.
+
+Phase 3
+
+Put capability metadata into:
+
+PostgreSQL
+
+and hot discovery data into:
+
+Redis
+Phase 4
+
+Execute one harmless tool:
+
+system.info
+Phase 5
+
+Create:
+
+cognition.operation
+
+for the execution.
+
+Phase 6
+
+Store:
+
+tool input
+tool output
+result hash
+timing
+MCP server
+capability
+agent
+Phase 7
+
+Project:
+
+Agent
+  ↓
+Operation
+  ↓
+MCP Tool
+  ↓
+MCP Server
+
+into TerminusDB.
+
+Phase 8
+
+Cache the result in Redis.
+
+Phase 9
+
+Run the same request again.
+
+The expected path becomes:
+
+Agent
+ ↓
+Attention
+ ↓
+Redis
+ ↓
+cached capability/result
+ ↓
+NO unnecessary MCP call
+
+That gives us our first measurable MOS performance improvement.
+
+41. Specification Invariants
+
+These should be treated as hard rules.
+
+Invariant 1
+
+MCP is not authoritative storage.
+
+Invariant 2
+
+Redis is not authoritative storage.
+
+Invariant 3
+
+Tool authorization belongs to MOS policy + underlying system security.
+
+Invariant 4
+
+Every meaningful tool operation is auditable.
+
+Invariant 5
+
+External observations do not automatically become knowledge.
+
+Invariant 6
+
+Tool results are not automatically facts.
+
+Invariant 7
+
+Side-effecting operations are never represented solely by cached results.
+
+Invariant 8
+
+Historical tool operations remain immutable.
+
+Invariant 9
+
+Learned strategies are versioned rather than overwritten.
+
+Invariant 10
+
+MOS remains operational if Redis or an MCP server disappears.
+
+Invariant 11
+
+MOS remains model agnostic.
+
+Invariant 12
+
+MCP protocol state must not become MOS persistent state.
+
+42. Relationship to the Existing MOS Specifications
+
+This new specification fits the existing project rather cleanly:
+
+RFC-0001 → RFC-0014
+       │
+       ▼
+MOS Core
+       │
+       ├── Storage Specification
+       │
+       ├── PostgreSQL
+       │
+       ├── TerminusDB
+       │
+       ├── API Specification
+       │
+       ├── Worker Specification
+       │
+       ├── Attention/Reasoning Gateway
+       │
+       ├── Network Specification
+       │
+       ├── Cache Specification ← next
+       │
+       └── MCP Integration ← THIS
+
+And the MCP integration sits between the cognitive system and the external capability ecosystem, rather than becoming another storage subsystem.
+
+43. The key architectural insight
+
+I think we've now nailed something important about MOS:
+
+MOS doesn't need to know every tool. It needs to know how to discover, evaluate, select, use, remember, and learn from capabilities.
+
+MCP gives us the standardized capability interface.
+
+PostgreSQL gives us durable truth and provenance.
+
+TerminusDB gives us relationship traversal and graph history.
+
+pgvector gives us semantic retrieval.
+
+Redis gives us speed and runtime state.
+
+And MOS's cognitive layer determines:
+
+"What am I trying to accomplish?"
+        ↓
+"What information do I need?"
+        ↓
+"What capabilities are available?"
+        ↓
+"Which capability is best?"
+        ↓
+"Am I allowed to use it?"
+        ↓
+"Did it work?"
+        ↓
+"What did I learn?"
+        ↓
+"Should I change my strategy?"
+
+That is exactly the kind of closed-loop system we've been building toward.
+
+I would now consider the MCP boundary defined enough to proceed to the updated MOS Cache Specification v0.1. The cache spec should explicitly incorporate the MCP capability cache, resource cache, tool-result cache, host-context cache, and learned tool-selection statistics we have defined here.

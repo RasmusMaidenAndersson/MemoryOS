@@ -1,0 +1,35 @@
+Cross-spec terminology freeze
+
+This is one of the most important deliverables.
+
+We should now freeze the following canonical vocabulary.
+
+Term:	                Canonical meaning:
+
+Event	                Immutable historical occurrence
+Observation	            Interpreted information derived from an event
+Entity	                Identifiable object in the memory domain
+Fact	                Explicit semantic assertion about entities/values
+Relationship	        Semantic connection between entities
+Graph Edge	            Derived graph representation of a relationship
+Episode	                Group of related events representing an experience
+Memory	                General conceptual term, not a single storage object
+Working Memory	        Temporary active reasoning state
+Semantic Memory	        Persistent knowledge/facts
+Episodic Memory	        Historical experiences/events/episodes
+Procedural Memory	    Skills/procedures
+Provenance	            Evidence describing where knowledge came from
+Confidence	            Belief strength associated with knowledge
+Source	                Origin of information
+Worker	                Background component performing a defined transformation
+Node	                Independently addressable MOS runtime
+Domain	                Security/ownership boundary
+Projection	            Reconstructable representation derived from authoritative state
+Retrieval	            Process of finding relevant information
+Attention	            Process of selecting information for active reasoning
+Gateway	                Boundary coordinating retrieval/context/reasoning
+Plan	                Structured representation of intended work
+Goal	                Desired outcome
+Task	                Executable unit of work
+
+This vocabulary should become normative.

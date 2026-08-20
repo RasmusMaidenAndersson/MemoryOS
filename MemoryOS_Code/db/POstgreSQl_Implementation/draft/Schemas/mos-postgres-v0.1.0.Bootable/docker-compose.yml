@@ -1,0 +1,21 @@
+services:
+  mos-postgres:
+    image: pgvector/pgvector:pg17
+    container_name: mos-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: mos
+      POSTGRES_USER: mos
+      POSTGRES_PASSWORD: mos_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - mos_pgdata:/var/lib/postgresql/data
+      - ./docker/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mos -d mos"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+volumes:
+  mos_pgdata:

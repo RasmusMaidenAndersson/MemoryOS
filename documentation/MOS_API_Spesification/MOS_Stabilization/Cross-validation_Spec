@@ -1,0 +1,1193 @@
+MOS v0.1 Stabilization & Cross-Spec Validation
+1. Stabilization objective
+
+We currently have these major specifications:
+
+MOS Core Specification v0.1
+MOS Storage Specification v0.1
+MOS API Specification v0.1
+MOS Worker Specification v0.1
+MOS Attention & Reasoning Gateway
+MOS Network Specification v0.1
+RFC-0001 → RFC-0014
+
+The stabilization process must answer five questions:
+
+Do all specifications use the same concepts?
+Do they use the same terminology?
+Can every object be traced from creation → storage → processing → retrieval → network propagation?
+Are ownership, provenance, versioning and lifecycle consistent everywhere?
+Can we actually implement v0.1 without inventing missing concepts?
+
+The last question is particularly important.
+
+A specification is not stable merely because it sounds complete. It is stable when an engineer can implement it without repeatedly asking:
+
+"What does the specification mean here?"
+
+2. The MOS canonical architecture
+
+After cross-spec validation, I propose that this becomes our canonical architecture:
+
+                         ┌──────────────────┐
+                         │      AGENTS      │
+                         └────────┬─────────┘
+                                  │
+                                  ▼
+                         ┌──────────────────┐
+                         │    MOS API       │
+                         └────────┬─────────┘
+                                  │
+                                  ▼
+                  ┌──────────────────────────────┐
+                  │ Attention & Reasoning Gateway│
+                  └──────────────┬───────────────┘
+                                 │
+             ┌───────────────────┼───────────────────┐
+             ▼                   ▼                   ▼
+      Working Memory       Retrieval System      Planning
+             │                   │                   │
+             └───────────────────┼───────────────────┘
+                                 ▼
+                            Agent Reasoning
+                                 │
+                                 ▼
+                              Actions
+                                 │
+                                 ▼
+                              Outcomes
+                                 │
+                                 ▼
+                            MOS Events
+                                 │
+                                 ▼
+                         Worker Subsystem
+                                 │
+          ┌──────────────────────┼─────────────────────┐
+          ▼                      ▼                     ▼
+     Extraction              Learning             Reflection
+          │                      │                     │
+          └──────────────────────┼─────────────────────┘
+                                 ▼
+                         Persistent Memory
+                                 │
+          ┌──────────────────────┼─────────────────────┐
+          ▼                      ▼                     ▼
+        Facts                 Entities              Graph
+          │                      │                     │
+          └──────────────────────┼─────────────────────┘
+                                 ▼
+                           MOS Storage
+                                 │
+                                 ▼
+                           MOS Network
+                                 │
+             ┌───────────────────┼───────────────────┐
+             ▼                   ▼                   ▼
+          MOS Node            MOS Node            MOS Node
+
+This is the architecture we should validate everything against.
+
+3. The most important distinction: source vs projection
+
+One of the biggest things we should freeze now is this:
+
+Authoritative objects
+
+These represent actual MOS knowledge/state.
+
+Event
+Entity
+Fact
+Relationship
+Goal
+Task
+Procedure
+Skill
+Observation
+Plan
+Provenance
+Derived objects
+
+These can be reconstructed.
+
+Embedding
+Vector index
+Search index
+Graph projection
+Summary
+Cache
+Ranking
+Materialized retrieval context
+Statistics
+
+This distinction needs to exist across all specifications.
+
+Otherwise we eventually get into a situation where:
+
+PostgreSQL says X
+Vector DB says Y
+Graph says Z
+Cache says W
+
+and nobody knows which one is authoritative.
+
+The rule should be:
+
+Derived cognitive representations never become the authoritative source of truth unless explicitly promoted by a MOS operation.
+
+4. Canonical memory lifecycle
+
+We should now freeze the lifecycle.
+
+EVENT
+  │
+  ▼
+OBSERVATION
+  │
+  ▼
+ENTITY RESOLUTION
+  │
+  ▼
+FACT EXTRACTION
+  │
+  ▼
+PROVENANCE ATTACHMENT
+  │
+  ▼
+CONFIDENCE ASSIGNMENT
+  │
+  ▼
+DEDUPLICATION
+  │
+  ▼
+CONTRADICTION DETECTION
+  │
+  ▼
+MEMORY COMMIT
+  │
+  ├──────────────► GRAPH PROJECTION
+  │
+  ├──────────────► EMBEDDING
+  │
+  ├──────────────► SEARCH INDEX
+  │
+  └──────────────► CACHE INVALIDATION
+                         │
+                         ▼
+                    REFLECTION
+                         │
+                         ▼
+                    CONSOLIDATION
+
+This is now the canonical lifecycle.
+
+Workers may add stages, but they should not redefine the fundamental lifecycle.
+
+5. Canonical object hierarchy
+
+We should explicitly distinguish these concepts.
+
+Event
+  │
+  └── Observation
+          │
+          ├── Entity
+          │
+          └── Fact
+                  │
+                  └── Relationship / Graph Edge
+
+Then:
+
+Entity
+ ├── Facts
+ ├── Relationships
+ ├── Observations
+ ├── Episodes
+ └── References
+
+And separately:
+
+Goal
+ └── Plan
+      ├── Milestone
+      └── Task
+           └── Execution
+
+And:
+
+Skill
+ └── Procedure
+      ├── Step
+      ├── Verification
+      └── Failure Mode
+
+This prevents concepts from collapsing into one giant "memory" abstraction.
+
+6. Canonical identity model
+
+Every persistent MOS object gets:
+
+object_id
+object_type
+created_at
+updated_at
+version
+status
+owner
+provenance
+
+UUID remains the canonical identifier.
+
+But there is an important refinement:
+
+Object identity ≠ version identity
+
+For example:
+
+fact_id = F123
+
+
+version 1
+version 2
+version 3
+
+The fact remains the same conceptual object.
+
+Its versions represent its history.
+
+Therefore:
+
+fact_id
+version_id
+
+should be conceptually distinct.
+
+This is important for synchronization and federation.
+
+7. Canonical provenance model
+
+Every knowledge-bearing object must be explainable.
+
+The minimum provenance chain becomes:
+
+Object
+   │
+   ▼
+Source
+   │
+   ▼
+Event
+   │
+   ▼
+Actor
+   │
+   ▼
+Timestamp
+
+For LLM-derived information:
+
+Fact
+ │
+ ├── source_event
+ ├── extraction_worker
+ ├── model
+ ├── model_version
+ ├── prompt/template version
+ ├── confidence
+ └── evidence
+
+This gives us something extremely important:
+
+MOS can distinguish what was observed from what an AI inferred from what was observed.
+
+That distinction should be preserved permanently.
+
+8. Confidence needs refinement
+
+We previously used a simple:
+
+confidence = 0.0 → 1.0
+
+That is useful but insufficient by itself.
+
+We should distinguish:
+
+confidence
+confidence_source
+confidence_method
+
+For example:
+
+confidence: 0.98
+
+
+basis:
+explicit_user_statement
+
+versus:
+
+confidence: 0.72
+
+
+basis:
+llm_inference
+
+versus:
+
+confidence: 0.91
+
+
+basis:
+multi_source_agreement
+
+This prevents a numerical score from pretending to have more meaning than it actually does.
+
+9. Canonical memory states
+
+We should freeze the lifecycle states.
+
+active
+superseded
+expired
+archived
+quarantined
+deleted
+
+However, there is an important correction to our earlier "nothing is ever deleted" rule.
+
+Operationally, MOS may need to delete data for:
+
+privacy requirements,
+legal requirements,
+security incidents,
+explicit user deletion.
+
+Therefore the actual invariant should be:
+
+MOS never silently destroys knowledge state. Destructive operations must be explicit, authorized, auditable where legally permissible, and distinguish logical retirement from physical deletion.
+
+That is much more production-ready.
+
+10. Events remain immutable
+
+This should be an absolute invariant.
+
+Event
+  ↓
+append-only
+
+Never:
+
+UPDATE event
+
+Never:
+
+rewrite event
+
+Corrections are new events.
+
+Example:
+
+Event 100:
+User owns laptop A
+
+
+Event 150:
+User sold laptop A
+
+
+Event 151:
+User owns laptop B
+
+The original historical events remain intact.
+
+11. Facts are temporal
+
+Facts need temporal semantics.
+
+At minimum:
+
+valid_from
+valid_until
+recorded_at
+
+These mean different things.
+
+valid_from
+
+When the fact became true.
+
+valid_until
+
+When it stopped being true.
+
+recorded_at
+
+When MOS learned about it.
+
+This distinction is extremely important.
+
+Example:
+
+User moved to Stockholm:
+
+
+valid_from = 2025-01-01
+recorded_at = 2026-02-10
+
+MOS learned it a year after it happened.
+
+12. Graph alignment
+
+We need to explicitly define:
+
+Facts are semantic knowledge. Graph edges are a projection of relationships derived from facts.
+
+Therefore:
+
+Fact
+ │
+ ▼
+Graph Projection
+ │
+ ▼
+Edge
+
+The graph must retain a reference to the fact(s) supporting it.
+
+Therefore graph traversal can eventually answer:
+
+Why does this edge exist?
+
+This is one of the most important explainability guarantees in the entire system.
+
+13. Embedding alignment
+
+Embeddings are explicitly derived.
+
+Entity
+Fact
+Episode
+Document
+Skill
+Procedure
+Summary
+      │
+      ▼
+Embedding Worker
+      │
+      ▼
+Embedding
+
+Embeddings must contain:
+
+source_object_id
+model
+model_version
+dimension
+created_at
+
+Changing the embedding model therefore does not corrupt memory.
+
+We simply generate:
+
+embedding v1
+embedding v2
+
+and eventually retire the old projection.
+
+14. Retrieval alignment
+
+The retrieval pipeline becomes:
+
+Query
+ │
+ ▼
+Authentication
+ │
+ ▼
+Authorization
+ │
+ ▼
+Intent / Scope
+ │
+ ▼
+Working Memory
+ │
+ ▼
+Semantic Cache
+ │
+ ▼
+Structured Retrieval
+ │
+ ├── Facts
+ ├── Entities
+ ├── Preferences
+ ├── Goals
+ └── Plans
+ │
+ ▼
+Graph Expansion
+ │
+ ▼
+Semantic Search
+ │
+ ▼
+Temporal Filtering
+ │
+ ▼
+Confidence Filtering
+ │
+ ▼
+Reranking
+ │
+ ▼
+Evidence Assembly
+ │
+ ▼
+Attention Gateway
+ │
+ ▼
+LLM / Reasoning Model
+
+This should become the canonical retrieval flow.
+
+15. The LLM boundary
+
+This is another thing I want to freeze.
+
+The LLM is not MOS.
+
+The LLM is a consumer/producer of cognitive information.
+
+             MOS
+              │
+      ┌───────┴───────┐
+      ▼               ▼
+   Context          Memory
+      │               │
+      └───────┬───────┘
+              ▼
+             LLM
+              │
+              ▼
+        Structured Output
+              │
+              ▼
+             MOS
+
+The LLM can:
+
+interpret,
+reason,
+summarize,
+extract,
+classify,
+plan.
+
+But MOS remains responsible for:
+
+identity,
+persistence,
+provenance,
+lifecycle,
+authorization,
+versioning,
+consistency.
+
+This is a fundamental architectural boundary.
+
+16. Worker contract alignment
+
+Every worker should follow one standard contract.
+
+INPUT
+  │
+  ├── event/object
+  ├── context
+  ├── configuration
+  └── resource limits
+       │
+       ▼
+     WORKER
+       │
+       ├── result
+       ├── evidence
+       ├── confidence
+       ├── metrics
+       └── emitted events
+
+A worker should not directly mutate unrelated domains.
+
+Instead:
+
+Worker
+  ↓
+validated command/event
+  ↓
+MOS service
+  ↓
+transaction
+
+This makes the system much safer.
+
+17. Worker idempotency
+
+Every worker operation needs:
+
+event_id
+worker_id
+worker_version
+execution_id
+
+And a deduplication mechanism.
+
+Therefore:
+
+same event
++
+same worker
++
+same processing version
+
+must not accidentally create duplicate memory.
+
+18. Network alignment
+
+The network specification now fits naturally:
+
+Worker
+  ↓
+Event
+  ↓
+Network
+  ↓
+Remote Worker
+
+Because events are immutable and identifiable, distributed processing becomes manageable.
+
+The network therefore transports MOS operations and events, rather than arbitrary database mutations.
+
+19. API alignment
+
+The public API should expose semantic operations rather than tables.
+
+Good:
+
+remember()
+recall()
+search()
+learn()
+explain()
+update_fact()
+forget()
+reflect()
+
+Bad:
+
+insert_fact_row()
+update_entity_table()
+delete_embedding()
+
+The API should protect the internal architecture.
+
+20. Storage alignment
+
+PostgreSQL remains the authoritative persistence layer in the reference implementation.
+
+The important distinction:
+
+MOS specification
+        ≠
+PostgreSQL implementation
+
+MOS defines semantics.
+
+PostgreSQL implements those semantics.
+
+This means a future implementation could theoretically use another storage engine while remaining MOS-compatible.
+
+21. Security alignment
+
+Security must exist at every layer:
+
+Network
+   ↓
+API
+   ↓
+Gateway
+   ↓
+Worker
+   ↓
+Storage
+
+Authorization cannot happen only at the API boundary.
+
+A compromised worker must not automatically gain unrestricted memory access.
+
+22. Cross-spec terminology freeze
+
+This is one of the most important deliverables.
+
+We should now freeze the following canonical vocabulary.
+
+Term	Canonical meaning
+Event	Immutable historical occurrence
+Observation	Interpreted information derived from an event
+Entity	Identifiable object in the memory domain
+Fact	Explicit semantic assertion about entities/values
+Relationship	Semantic connection between entities
+Graph Edge	Derived graph representation of a relationship
+Episode	Group of related events representing an experience
+Memory	General conceptual term, not a single storage object
+Working Memory	Temporary active reasoning state
+Semantic Memory	Persistent knowledge/facts
+Episodic Memory	Historical experiences/events/episodes
+Procedural Memory	Skills/procedures
+Provenance	Evidence describing where knowledge came from
+Confidence	Belief strength associated with knowledge
+Source	Origin of information
+Worker	Background component performing a defined transformation
+Node	Independently addressable MOS runtime
+Domain	Security/ownership boundary
+Projection	Reconstructable representation derived from authoritative state
+Retrieval	Process of finding relevant information
+Attention	Process of selecting information for active reasoning
+Gateway	Boundary coordinating retrieval/context/reasoning
+Plan	Structured representation of intended work
+Goal	Desired outcome
+Task	Executable unit of work
+
+This vocabulary should become normative.
+
+23. Terms we should avoid
+
+We should avoid using these ambiguously:
+
+"Memory"
+
+Don't say:
+
+"store memory"
+
+when we mean:
+
+create a fact
+
+or:
+
+append an event
+
+or:
+
+generate an embedding.
+
+"Knowledge"
+
+Use it as an umbrella concept, but identify the actual representation.
+
+knowledge
+ ├── fact
+ ├── entity
+ ├── relationship
+ └── procedure
+"Context"
+
+Context should mean:
+
+Information assembled for a specific reasoning operation.
+
+It is not synonymous with memory.
+
+"State"
+
+We should distinguish:
+
+agent state
+working-memory state
+plan state
+execution state
+memory state
+24. Cross-spec dependency graph
+
+The specifications should now have explicit dependencies:
+
+                 MOS CORE
+                    │
+       ┌────────────┼────────────┐
+       ▼            ▼            ▼
+    STORAGE        API        NETWORK
+       │            │            │
+       └────────────┼────────────┘
+                    ▼
+                 WORKERS
+                    │
+                    ▼
+              ATTENTION
+                    │
+                    ▼
+                REASONING
+
+The Core Specification defines semantics.
+
+Storage implements persistence.
+
+API exposes operations.
+
+Workers transform information.
+
+Network distributes operations/events.
+
+Attention assembles relevant information.
+
+Reasoning consumes that information.
+
+25. Invariants
+
+Now we establish the MOS invariants.
+
+These are stronger than recommendations.
+
+M-001 — Immutable Events
+
+Events cannot be modified after commitment.
+
+M-002 — Stable Identity
+
+Persistent objects have stable identifiers.
+
+M-003 — Provenance
+
+Knowledge-bearing objects have provenance.
+
+M-004 — Versionability
+
+Mutable knowledge supports version history.
+
+M-005 — Explicit Authority
+
+Every authoritative object has an ownership/authority domain.
+
+M-006 — Derived Data
+
+Derived representations are reconstructable.
+
+M-007 — Idempotent Processing
+
+Distributed workers must tolerate duplicate events.
+
+M-008 — Temporal Semantics
+
+Time-dependent knowledge supports temporal validity.
+
+M-009 — Explicit Confidence
+
+Inference strength is represented separately from factual content.
+
+M-010 — Authorization
+
+Access to memory is explicitly authorized.
+
+M-011 — Explainability
+
+Knowledge and decisions can be traced to supporting evidence.
+
+M-012 — Network Independence
+
+MOS semantics cannot depend on a particular network transport.
+
+26. Missing primitives discovered during stabilization
+
+This review exposes several concepts that deserve explicit primitives.
+
+These were implicit before.
+
+We should now formally add:
+
+1. Evidence
+
+A fact can have multiple pieces of supporting evidence.
+
+Fact
+ ├── Evidence A
+ ├── Evidence B
+ └── Evidence C
+2. Assertion
+
+A source makes an assertion.
+
+This allows us to distinguish:
+
+Source says X
+
+from:
+
+MOS believes X
+3. Conflict
+
+Conflicting assertions should be first-class objects.
+
+4. Authority
+
+Who is allowed to establish/modify knowledge?
+
+5. Domain
+
+Where does the knowledge belong?
+
+6. Projection
+
+Embeddings, graphs, summaries and indexes are projections.
+
+7. Cognitive Operation
+
+An operation such as:
+
+remember
+recall
+reflect
+infer
+plan
+explain
+
+should have a traceable identity.
+
+8. Evidence Set
+
+Reasoning should be able to reference a collection of evidence used to reach a conclusion.
+
+These are important additions to the Core model.
+
+27. The new canonical knowledge chain
+
+With those primitives added, our model becomes significantly stronger:
+
+SOURCE
+  │
+  ▼
+ASSERTION
+  │
+  ▼
+EVIDENCE
+  │
+  ▼
+OBSERVATION
+  │
+  ▼
+FACT
+  │
+  ├──────────────► CONFLICT
+  │
+  ▼
+KNOWLEDGE STATE
+  │
+  ├──────────────► GRAPH PROJECTION
+  ├──────────────► EMBEDDING
+  └──────────────► SEARCH PROJECTION
+
+This is a major improvement.
+
+It means MOS doesn't simply say:
+
+"The fact is true."
+
+It can say:
+
+"These sources produced these assertions, this evidence supports them, these competing assertions exist, and the current knowledge state has this confidence."
+
+That is much closer to a real cognitive substrate.
+
+28. Cognitive operation model
+
+We should also formalize operations.
+
+Every meaningful cognitive operation receives:
+
+operation_id
+operation_type
+actor
+agent
+input_refs
+output_refs
+timestamp
+model
+model_version
+policy
+result
+
+For example:
+
+operation_type = fact_extraction
+
+produces:
+
+input:
+event_123
+
+
+output:
+fact_456
+entity_789
+
+Now the system can explain not only:
+
+Where did this fact come from?
+
+but also:
+
+What process created this fact?
+
+29. Full explainability chain
+
+We can now achieve:
+
+Decision
+   │
+   ▼
+Reasoning Operation
+   │
+   ▼
+Evidence Set
+   │
+   ├── Fact A
+   │     └── Assertion
+   │          └── Source
+   │
+   ├── Fact B
+   │     └── Assertion
+   │          └── Source
+   │
+   └── Procedure
+         └── Source
+
+This is one of the strongest properties of the architecture.
+
+30. MOS v0.1 stabilization result
+
+After this review, I would define the state of the project as:
+
+MOS Core v0.1
+        │
+        ├── Identity
+        ├── Events
+        ├── Entities
+        ├── Observations
+        ├── Assertions
+        ├── Evidence
+        ├── Facts
+        ├── Relationships
+        ├── Provenance
+        ├── Confidence
+        ├── Temporal State
+        ├── Conflicts
+        ├── Authority
+        └── Projections
+
+
+MOS Storage v0.1
+        │
+        ├── Persistence
+        ├── Transactions
+        ├── Versioning
+        ├── Indexing
+        └── Derived Stores
+
+
+MOS API v0.1
+        │
+        ├── Remember
+        ├── Recall
+        ├── Search
+        ├── Learn
+        ├── Explain
+        ├── Reflect
+        └── Memory Management
+
+
+MOS Worker v0.1
+        │
+        ├── Extraction
+        ├── Resolution
+        ├── Embedding
+        ├── Graph
+        ├── Conflict
+        └── Consolidation
+
+
+Attention Gateway v0.1
+        │
+        ├── Retrieval
+        ├── Ranking
+        ├── Context Assembly
+        └── Evidence Selection
+
+
+MOS Network v0.1
+        │
+        ├── Nodes
+        ├── Identity
+        ├── Events
+        ├── Federation
+        ├── Synchronization
+        └── Distributed Cognition
+31. Stabilization verdict
+
+I would not yet call the implementation frozen.
+
+But I would call the conceptual architecture:
+
+MOS v0.1 Architecture Candidate — Stabilized
+
+The remaining work before declaring MOS Core v0.1.0 frozen is now much narrower.
+
+We need to perform four final engineering passes:
+
+1. Schema-level consistency
+2. API/object consistency
+3. Worker/event consistency
+4. Security/lifecycle consistency
+
+Then we can produce:
+
+MOS Core Specification v0.1.0
+MOS Storage Specification v0.1.0
+MOS API Specification v0.1.0
+MOS Worker Specification v0.1.0
+MOS Attention Gateway Specification v0.1.0
+MOS Network Specification v0.1.0
+
+and formally mark them as the MOS v0.1 baseline.
+
+The important result
+
+We've reached an interesting point in the project.
+
+MOS is no longer merely:
+
+PostgreSQL
++
+Vector Search
++
+Knowledge Graph
++
+LLM
+
+It has become:
+
+                MOS
+                 │
+      ┌──────────┼───────────┐
+      │          │           │
+   MEMORY     COGNITION   NETWORK
+      │          │           │
+      ▼          ▼           ▼
+ Knowledge    Attention    Federation
+ Provenance   Reasoning    Synchronization
+ Versioning   Planning     Distribution
+ Evidence     Reflection   Trust
+
+ And the new core abstraction I think we should carry forward is Evidence → Assertion → Knowledge State. That gives the entire system a much more rigorous epistemic foundation than simply attaching a confidence score to facts.
+
+Next, I recommend we do the actual schema-level validation: take the canonical objects above and map them against the Storage Specification, checking every table, field, foreign key, lifecycle state, index, event, and version relationship. That will expose the remaining inconsistencies before we write the actual MOS PostgreSQL migrations.

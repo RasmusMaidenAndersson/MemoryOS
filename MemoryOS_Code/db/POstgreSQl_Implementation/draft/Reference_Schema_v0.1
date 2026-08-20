@@ -1,0 +1,32 @@
+MOS PostgreSQL Reference Schema v0.1
+
+It becomes the canonical physical schema for our PostgreSQL implementation.
+
+It should have a table like:
+
+| Schema    | Table      | Purpose                | PK   | FK        | Lifecycle | Versioned | Provenance |
+| --------- | ---------- | ---------------------- | ---- | --------- | --------- | --------- | ---------- |
+| identity  | principals | Actors in MOS          | UUID | —         | Yes       | Yes       | Yes        |
+| event     | events     | Immutable event log    | UUID | principal | No        | No        | Yes        |
+| memory    | entities   | Conceptual objects     | UUID | —         | Yes       | Yes       | Yes        |
+| knowledge | facts      | Semantic assertions    | UUID | entity    | Yes       | Yes       | Yes        |
+| graph     | edges      | Graph projection       | UUID | entities  | Yes       | Yes       | Yes        |
+| planning  | goals      | Desired outcomes       | UUID | principal | Yes       | Yes       | Yes        |
+| procedure | skills     | Reusable capabilities  | UUID | agent     | Yes       | Yes       | Yes        |
+| execution | tool_calls | Tool execution         | UUID | execution | Yes       | Yes       | Yes        |
+| embedding | embeddings | Vector representations | UUID | source    | Yes       | Yes       | Yes        |
+
+Then for every single table, we specify the exact columns.
+
+-----------------------------------------------------------------------------------------------------------
+
+Once that document is frozen:
+MOS PostgreSQL Reference Schema
+              │
+              ├── schemas/*.sql
+              │
+              ├── indexes/*.sql
+              │
+              ├── functions/*.sql
+              │
+              └── migrations/*.sql

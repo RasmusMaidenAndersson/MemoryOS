@@ -1,0 +1,136 @@
+mos
+│
+├── identity
+│   ├── principals
+│   ├── agents
+│   ├── agent_versions
+│   ├── namespaces
+│   └── identities
+│
+├── event
+│   ├── streams
+│   ├── events
+│   ├── event_links
+│   ├── event_sources
+│   └── event_versions
+│
+├── memory
+│   ├── entities
+│   ├── entity_versions
+│   ├── entity_aliases
+│   ├── entity_identifiers
+│   ├── observations
+│   ├── episodes
+│   ├── episode_events
+│   ├── memory_items
+│   ├── working_memory
+│   └── memory_access
+│
+├── provenance
+│   ├── sources
+│   ├── evidence
+│   ├── evidence_links
+│   ├── derivations
+│   └── provenance_chains
+│
+├── knowledge
+│   ├── predicates
+│   ├── assertions
+│   ├── assertion_versions
+│   ├── facts
+│   ├── fact_values
+│   ├── conflicts
+│   ├── resolutions
+│   └── validity_intervals
+│
+├── graph
+│   ├── nodes
+│   ├── edges
+│   ├── edge_versions
+│   ├── paths
+│   └── graph_projections
+│
+├── cognition
+│   ├── operations
+│   ├── reasoning_runs
+│   ├── reasoning_inputs
+│   ├── reasoning_outputs
+│   ├── decisions
+│   ├── reflections
+│   ├── hypotheses
+│   └── evaluations
+│
+├── planning
+│   ├── goals
+│   ├── goal_versions
+│   ├── plans
+│   ├── plan_versions
+│   ├── milestones
+│   ├── tasks
+│   ├── subtasks
+│   ├── dependencies
+│   └── task_assignments
+│
+├── procedure
+│   ├── skills
+│   ├── skill_versions
+│   ├── procedures
+│   ├── procedure_versions
+│   ├── procedure_steps
+│   ├── failure_modes
+│   └── recovery_strategies
+│
+├── execution
+│   ├── executions
+│   ├── actions
+│   ├── tool_calls
+│   ├── tool_results
+│   ├── execution_events
+│   └── execution_errors
+│
+├── embedding
+│   ├── models
+│   ├── embeddings
+│   ├── embedding_sources
+│   └── embedding_versions
+│
+├── retrieval
+│   ├── queries
+│   ├── retrieval_runs
+│   ├── retrieval_candidates
+│   ├── ranking_results
+│   └── context_builds
+│
+├── cache
+│   ├── semantic_cache
+│   ├── cache_entries
+│   └── invalidations
+│
+├── network
+│   ├── nodes
+│   ├── node_capabilities
+│   ├── peers
+│   ├── messages
+│   ├── deliveries
+│   └── acknowledgements
+│
+├── telemetry
+│   ├── worker_runs
+│   ├── llm_calls
+│   ├── tool_metrics
+│   ├── resource_usage
+│   └── performance_samples
+│
+├── auth
+│   ├── principals
+│   ├── roles
+│   ├── permissions
+│   ├── grants
+│   └── credentials
+│
+└── system
+    ├── schema_versions
+    ├── migrations
+    ├── configuration
+    ├── feature_flags
+    └── capabilities

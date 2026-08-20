@@ -698,3 +698,26 @@ execute()
 Applications do not manage memory directly.
 
 They request cognitive services.
+
+API alignment
+
+The public API should expose semantic operations rather than tables.
+
+Good:
+
+remember()
+recall()
+search()
+learn()
+explain()
+update_fact()
+forget()
+reflect()
+
+Bad:
+
+insert_fact_row()
+update_entity_table()
+delete_embedding()
+
+The API should protect the internal architecture.

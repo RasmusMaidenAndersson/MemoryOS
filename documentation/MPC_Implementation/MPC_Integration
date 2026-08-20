@@ -1,0 +1,104 @@
+What is implemented
+MOS MCP Gateway
+│
+├── MCP server registration
+├── capability model
+├── capability discovery
+├── risk classification
+├── deny-by-default authorization
+├── PostgreSQL operation/audit boundary
+├── Redis capability cache
+├── Redis tool-result cache
+├── stdio transport
+├── Streamable HTTP transport
+└── MCP client
+       │
+       ├── local MCP servers
+       └── remote MCP servers
+
+The implementation targets the current official MCP Python SDK v2 line, which supports the 2026-07-28 protocol and is currently a Tier-1 SDK. The official SDK also provides the Client API and standard stdio/Streamable HTTP transports we're using here.
+
+Security boundary
+
+The code intentionally does:
+
+Agent
+  ↓
+MOS policy
+  ↓
+authorization
+  ↓
+MCP tool
+
+Read-only capabilities are allowed by the demo policy; execution, mutation, destructive and privileged operations require an explicit allow-list.
+
+That matches the specification rather than exposing every discovered MCP tool directly to the model.
+
+PostgreSQL integration
+
+A tool invocation creates a cognition.operations record:
+
+Agent
+  ↓
+MCP capability
+  ↓
+cognition.operation
+  ↓
+MCP execution
+  ↓
+result / failure
+
+So MCP activity becomes part of MOS's auditable cognitive history.
+
+Redis integration
+
+The initial cache includes:
+
+mos:mcp:server:{id}:capabilities
+mos:mcp:tool-result:{hash}
+
+The result hash includes the server, capability, arguments, tool schema hash and host-context hash. That gives us the foundation for the more sophisticated version-aware caching architecture we designed.
+
+Test status
+
+I performed syntax/structure generation successfully, but I could not execute the MCP integration tests in this environment because the mcp package isn't installed in the runtime. The test suite therefore fails at import time rather than because of a detected logic failure.
+
+On your development machine:
+
+cd mos-mcp-integration-v0.1
+uv sync
+pytest -q
+
+The official SDK itself recommends uv and supports the same in-memory Client(server) testing pattern used in our test.
+
+What is intentionally still next
+
+This is MCP Integration v0.1 foundation, not the entire finished MCP subsystem. The next vertical slices should add:
+
+MCP Resources
+        ↓
+resource://...
+        ↓
+MOS Evidence / Context
+
+
+MCP Prompts
+        ↓
+MOS strategy/prompt integration
+
+
+Redis Streams
+        ↓
+capability/cache invalidation
+
+
+MCP operation
+        ↓
+TerminusDB graph projection
+
+
+Tool result
+        ↓
+learning / strategy evaluation
+
+That last part is especially important: we don't just want MOS to use tools; we want it to learn which capabilities and strategies work best and retain that knowledge as versioned MOS knowledge.
